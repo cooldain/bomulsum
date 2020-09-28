@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="couponDao">
+
+	<resultMap type="com.web.bomulsum.user.coupon.repository.UserCouponListVO" id="couponVo">
+		<result property="couponName" column="coupon_name" />
+		<result property="couponPrice" column="coupon_price" />
+		<result property="couponDate" column="coupon_date" />
+	</resultMap>
+
+	<select id="couponList" resultMap="couponVo" parameterType="String">
+		SELECT 
+		coupon_name, coupon_price, coupon_date
+		FROM
+		coupon_tb
+		WHERE
+		member_code_seq=#{userCode}
+	</select>
+
+</mapper>

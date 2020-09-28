@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="userGiftDAO">
+
+	<!-- 보낸 작품 코드-->
+	<select id="selectSendCode" parameterType="String" resultType="String">
+		SELECT order_code_seq
+		FROM gift_tb
+		WHERE member_code_seq=#{memberCode}
+	</select>
+	<!-- 보낸 선물 정보 -->
+	<select id="selectSendGift" parameterType="hashmap" resultType="UserSendGiftVO">
+		SELECT 
+			g.gift_seq, g.order_code_seq, g.gift_recipient_name, w.writer_brand_name,
+			o.order_date, o.order_address_input, o.order_pay_price, b.b_art_code_seq, 
+			b.b_art_name, b.b_art_option_count, b.b_writer_code_seq, a.art_photo
+		FROM 
+			order_tb o, buy_art_tb b, writer_tb w, gift_tb g, art_tb a
+		WHERE 
+			g.order_code_seq = o.order_code_seq
+		AND o.order_code_seq = b.order_code_seq
+		AND b.b_writer_code_seq = w.writer_code_seq
+		AND a.art_code_seq = b.b_art_code_seq
+		AND b.order_code_seq in
+		<foreach collection="orderList" item="item" open="(" close=")" separator=",">
+			#{item}
+		</foreach>
+		ORDER BY g.order_code_seq
+	</select>
+	
+ 	<!-- 보낸 선물 상세정보 -->
+	<select id="selectSendGiftCheck" parameterType="String" resultType="UserSendGiftDetailVO">
+		SELECT 
+			g.gift_seq, g.order_code_seq, g.gift_recipient_name, g.gift_recipient_phone, 
+			g.gift_message, w.writer_brand_name, o.order_date, o.order_address_input, o.order_date + 7 as limitDate,
+			o.order_pay_price, o.order_payment, o.order_status, o.order_request, b.b_art_code_seq, 
+			b.b_art_name, b.b_art_option_count, b.b_writer_code_seq, a.art_photo, a.art_point
+		FROM 
+			order_tb o, buy_art_tb b, writer_tb w, gift_tb g, art_tb a
+		WHERE 
+			g.order_code_seq = o.order_code_seq
+		AND o.order_code_seq = b.order_code_seq
+		AND b.b_writer_code_seq = w.writer_code_seq
+		AND a.art_code_seq = b.b_art_code_seq
+		AND b.order_code_seq = #{orderCode}
+	</select> 
+	
+	<!-- 받은 선물코드  -->
+	<select id="selectreceiveCode" parameterType="hashmap" resultType="String">
+		SELECT order_code_seq
+		FROM gift_tb
+		WHERE gift_recipient_name=#{memberName}
+		AND gift_recipient_phone=#{memberPhone}
+	</select>
+	
+	<!-- 받은 선물 정보 -->
+	<select id="selectReceiveGift" parameterType="hashmap" resultType="UserReceiveGiftVO">
+		SELECT 
+			g.gift_seq, g.order_code_seq, g.member_code_seq, o.order_date, 
+			o.order_address_input, o.order_date + 7 as limitDate, w.writer_brand_name, 
+			a.art_photo, b.b_art_name, b.b_writer_code_seq, m.member_name, m.member_phone
+		FROM 
+			gift_tb g, order_tb o, art_tb a, writer_tb w, buy_art_tb b, member_tb m
+		WHERE 
+			g.order_code_seq = o.order_code_seq 
+		AND m.member_code_seq = g.member_code_seq 
+		AND o.order_code_seq = b.order_code_seq 
+		AND b.b_writer_code_seq = w.writer_code_seq 
+		AND a.art_code_seq = b.b_art_code_seq
+		AND b.order_code_seq in
+		<foreach collection="orderGiftList" item="item" open="(" close=")" separator=",">
+			#{item}
+		</foreach>
+		ORDER BY g.order_code_seq
+	</select>
+	
+	<!-- 받은 선물 상세정보 -->
+	<select id="selectReceiveGiftCheck" parameterType="String" resultType="UserReceiveGiftDetailVO">
+		SELECT 
+			g.order_code_seq, g.gift_recipient_name, g.member_code_seq, g.gift_message, g.gift_recipient_phone,
+			w.writer_brand_name, o.order_address_input, o.order_zipcode, o.order_address_first,
+			o.order_address_second, o.order_status, b.b_art_name, b.b_writer_code_seq, a.art_photo, 
+			m.member_name, m.member_phone
+		FROM 
+			gift_tb g, order_tb o, art_tb a, writer_tb w, buy_art_tb b, member_tb m
+		WHERE 
+			g.order_code_seq = o.order_code_seq 
+		AND m.member_code_seq = g.member_code_seq 
+		AND o.order_code_seq = b.order_code_seq 
+		AND b.b_writer_code_seq = w.writer_code_seq 
+		AND a.art_code_seq = b.b_art_code_seq
+		AND b.order_code_seq=#{orderCode}
+	</select> 
+	
+	<update id="updateAddress" parameterType="hashmap">
+		UPDATE
+			order_tb
+		SET 
+			order_address_input='Y',
+    		order_zipcode=#{addressZipcode},
+    		order_address_first=#{addressFirst},
+    		order_address_second=#{addressSecond},
+    		order_relived_num=#{reliveNum}
+		WHERE 
+			order_code_seq=#{orderCode}
+	</update>
+	
+	<update id="updateInfoAgree" parameterType="hashmap">
+		UPDATE
+			gift_tb
+		SET 
+			gift_info_agree=#{addressInfoAgree}
+		WHERE 
+			order_code_seq=#{orderCode}
+	</update>
+	
+
+	
+	
+
+	
+	
+
+</mapper>

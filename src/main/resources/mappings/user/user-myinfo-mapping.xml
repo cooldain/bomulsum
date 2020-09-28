@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="MyInfo">
+
+	<resultMap type="com.web.bomulsum.user.myinfo.repository.MyInfoArticleVO" id="articleVo">
+		<result property="artCode" column="art_code_seq"/>
+		<result property="artImg" column="art_photo"/>
+		<result property="artName" column="art_name"/>
+		<result property="writerName" column="writer_name"/>
+		<result property="writerBrandName" column="writer_brand_name"/>
+	</resultMap>
+	
+	<resultMap type="com.web.bomulsum.user.myinfo.repository.WriterInfoArticleVO" id="writerVo">
+	    <result property="artCodeSeq" column="art_code_seq"/>
+	    <result property="artPhoto" column="art_photo"/>
+	    <result property="writerCodeSeq" column="writer_code_seq"/>
+	    <result property="writerProfileImg" column="writer_profile_img"/>
+	    <result property="writerUrl" column="writer_url"/>
+	    <result property="writerName" column="writer_name"/>
+	    <result property="writerBrandName" column="writer_brand_name"/>
+	    <result property="writerIntro" column="writer_intro"/>
+	</resultMap>
+
+	<select id="getCouponCount" parameterType="String" resultType="int">
+		SELECT
+			COUNT(*)
+		FROM
+			coupon_tb
+		WHERE
+			member_code_seq=#{member}
+	</select>
+	
+	<select id="getLikeList" parameterType="String" resultType="String">
+		SELECT
+			wishlist_option_code
+		FROM
+			wishlist_tb
+		WHERE
+			member_code_seq=#{member}
+			AND
+			wishlist_option='좋아하는작품'
+		ORDER BY 
+			wishlist_time DESC
+	</select>
+	
+	<select id="getRecentlyArt" parameterType="String" resultType="String">
+		SELECT
+			wishlist_option_code
+		FROM
+			wishlist_tb
+		WHERE
+			member_code_seq=#{member}
+			AND
+			wishlist_option='최근본작품'
+		ORDER BY 
+			wishlist_time DESC
+	</select>
+	
+	<select id="getLikeWriter" parameterType="String" resultType="String">
+		SELECT
+			wishlist_option_code
+		FROM
+			(
+				SELECT * FROM
+					wishlist_tb
+				WHERE
+					member_code_seq=#{member}
+					AND
+					wishlist_option='좋아하는작가'
+				ORDER BY
+					wishlist_time DESC
+			)
+		WHERE
+			ROWNUM = 1
+	</select>
+	
+	<select id="getWriterInfo" parameterType="String" resultMap="writerVo">
+	SELECT
+	    a.art_code_seq,
+	    a.art_photo,
+	    w.writer_code_seq,
+	    w.writer_profile_img,
+	    w.writer_url,
+	    w.writer_name,
+	    w.writer_brand_name,
+	    w.writer_intro
+	FROM
+	    art_tb a
+	INNER JOIN
+	    writer_tb w
+	ON
+	    w.writer_code_seq = a.writer_code_seq
+	WHERE
+	    w.writer_code_seq = #{writerCode}
+	</select>
+	
+	<select id="getLikeArticle" parameterType="String" resultMap="articleVo">
+		SELECT
+			a.art_code_seq,
+			w.writer_name,
+			w.writer_brand_name,
+			a.art_photo,
+			a.art_name
+		FROM
+			art_tb a
+		INNER JOIN
+			writer_tb w
+		ON
+			w.writer_code_seq = a.writer_code_seq
+		WHERE
+			a.art_code_seq=#{artCode}
+	</select>
+</mapper>

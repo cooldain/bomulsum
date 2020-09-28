@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="writerProfileDAO">
+
+	<resultMap id="profileMap" type="com.web.bomulsum.writer.profile.repository.WriterProfileVO">
+		<result property="writerProfileImg" column="writer_profile_img"/>
+		<result property="writerCoverImg" column="writer_cover_img"/>
+		<result property="writerBrandName" column="writer_brand_name"/>
+		<result property="writerIntro" column="writer_intro"/>
+	</resultMap>
+	
+	<!-- 프로필 등록(수정) -->
+	<update id="updateProfile" parameterType="WriterProfileVO">
+		UPDATE writer_tb 
+		SET 
+		writer_profile_img = #{writerProfileImg} , writer_cover_img= #{writerCoverImg}, 
+		writer_brand_name = #{writerBrandName}, writer_intro=#{writerIntro} 
+		WHERE 
+		writer_code_seq = #{writerCodeSeq} <!-- 작가코드 받아오기 -->
+	</update>
+	
+	<!-- 작가 프로필 불러오기 -->
+	<select id="loadProfile"  resultMap = "profileMap" parameterType="String">
+		SELECT 
+		writer_profile_img, writer_cover_img, writer_brand_name, writer_intro 
+		FROM 
+		writer_tb 
+		WHERE 
+		writer_code_seq = #{writerCodeSeq}
+	</select>
+	
+	<!-- 원래 프로필이미지 가져오기 -->
+	<select id="loadProfileImg" resultType="String">
+		SELECT 
+		writer_profile_img
+		FROM 
+		writer_tb 
+		WHERE 
+		writer_code_seq = #{writerCodeSeq}
+	</select>
+	<!-- 원래 커버이미지 가져오기 -->
+	<select id="loadCoverImg" resultType="String">
+		SELECT 
+		writer_cover_img
+		FROM 
+		writer_tb 
+		WHERE 
+		writer_code_seq = #{writerCodeSeq}
+	</select>
+
+</mapper>

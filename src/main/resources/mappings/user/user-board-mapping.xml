@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="userBoardDAO">
+
+	
+	<resultMap type="com.web.bomulsum.user.board.repository.UserBoardNoticeVO" id="noticeVo">
+		<result property="noticeSeq" column="admin_notice_seq" />
+		<result property="noticeCategory" column="admin_notice_category" />
+		<result property="noticeTitle" column="admin_notice_title" />
+		<result property="noticeContent" column="admin_notice_content" />
+		<result property="noticeDate" column="admin_notice_date" />
+	</resultMap>
+	
+
+	<select id="getNoticeTitle" resultMap="noticeVo">
+		SELECT 
+		admin_notice_seq, admin_notice_category, admin_notice_title, admin_notice_content, admin_notice_date
+		FROM
+		admin_notice_tb
+		WHERE
+		admin_notice_category='이벤트' 
+		OR 
+		admin_notice_category='회원용-공지사항'
+		ORDER BY 
+		admin_notice_date DESC
+	</select>
+	
+	<select id="getQuestionTitle" resultMap="noticeVo">
+		SELECT 
+		admin_notice_seq, admin_notice_category, admin_notice_title, admin_notice_content, admin_notice_date
+		FROM
+		admin_notice_tb
+		WHERE
+		admin_notice_category='회원용-자주묻는질문'
+		ORDER BY 
+		admin_notice_date DESC
+	</select>
+	
+	<select id="getCoupon" resultType="String" parameterType="String">
+		SELECT
+		admin_notice_coupon
+		FROM
+		admin_notice_tb
+		WHERE
+		admin_notice_seq=#{seq}
+	</select>
+	
+	<select id="getNoticeDetail" resultMap="noticeVo" parameterType="String">
+		SELECT 
+		admin_notice_seq, admin_notice_category, admin_notice_title, admin_notice_content, admin_notice_date
+		FROM
+		admin_notice_tb
+		WHERE
+		admin_notice_seq=#{seq}
+	</select>
+	
+	<insert id="insertCoupon" parameterType="com.web.bomulsum.user.board.repository.UserCouponVo">
+		INSERT INTO coupon_tb
+		(
+			coupon_code_seq,
+			member_code_seq,
+			coupon_name,
+			coupon_content,
+			coupon_price,
+			coupon_date
+		)
+		VALUES
+		(
+			'coupon_sq' || TO_CHAR(coupon_sq.nextval),
+			#{memberCodeSeq},
+			#{couponName},
+			#{couponContent},
+			#{couponPrice},
+			#{couponDate}
+		)
+	</insert>
+	
+	<select id="couponOverRap" parameterType="com.web.bomulsum.user.board.repository.UserCouponVo" resultType="int">
+		SELECT COUNT(1) FROM
+		coupon_tb
+		WHERE
+		member_code_seq = #{memberCodeSeq} AND
+		coupon_name = #{couponName} AND
+		coupon_content = #{couponContent} AND
+		coupon_price = #{couponPrice}
+	</select>
+
+</mapper>

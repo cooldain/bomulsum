@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="salesDao">
+
+	<resultMap type="com.web.bomulsum.manager.statistics.repository.MonthAverVO" id="monthMap">
+		<result column="art_price" property="price" />
+		<result column="art_option_amount" property="amount" />
+		<result column="month" property="date" />
+	</resultMap>
+
+	<select id="filterData" parameterType="hashMap" resultMap="monthMap">
+		SELECT 
+		    op.art_price, 
+		    op.art_option_amount,
+		    <if test="filtDate == '월별'">
+			    to_char(o.order_date,'YY-MM') AS month
+		    </if>
+		    <if test="filtDate == '일별'">
+		    	to_char(o.order_date,'YY-MM-DD') AS month
+		    </if>
+		FROM 
+		    order_tb o 
+		INNER JOIN 
+		    buy_writer_tb w 
+		ON 
+		    o.order_code_seq = w.order_code_seq
+		INNER JOIN 
+		    buy_art_tb a
+		ON 
+		    w.buy_writer_code_seq = a.buy_writer_code_seq
+		INNER JOIN
+		    art_tb art
+		ON
+		    art.art_code_seq = a.art_code_seq
+		INNER JOIN 
+		    buy_option_tb op
+		ON 
+		    op.buy_art_code_seq = a.buy_art_code_seq
+		WHERE
+		    (
+		        w.buy_writer_order_status='결제 완료' 
+		        OR 
+		        w.buy_writer_order_status='배송 완료'
+		    )
+		    <if test="filtDate == '월별'">
+			    AND 
+			    TRUNC(o.order_date, 'year') = TRUNC(sysdate, 'year')
+		    </if>
+		    <if test="filtDate == '일별'">
+			    AND 
+			    TRUNC(o.order_date, 'month') = TRUNC(sysdate, 'month')
+		    </if>
+		    AND
+		    w.writer_code_seq=#{writer}
+		ORDER BY o.order_date ASC
+	</select>
+	
+	<select id="yearTotal" parameterType="String" resultType="int">
+		SELECT 
+		    NVL(SUM(op.art_price * op.art_option_amount),0) AS temp 
+		FROM 
+		    order_tb o 
+		INNER JOIN 
+		    buy_writer_tb w 
+		ON 
+		    o.order_code_seq = w.order_code_seq
+		INNER JOIN 
+		    buy_art_tb a
+		ON 
+		    w.buy_writer_code_seq = a.buy_writer_code_seq
+		INNER JOIN 
+		    buy_option_tb op
+		ON 
+		    op.buy_art_code_seq = a.buy_art_code_seq
+		WHERE
+		    (
+		        w.buy_writer_order_status ='결제 완료' 
+		        OR 
+		        w.buy_writer_order_status='배송 완료'
+		    )
+		    AND 
+		    TRUNC(o.order_date, 'year') = TRUNC(sysdate, 'year')
+		    AND
+		    w.writer_code_seq=#{writer}
+		ORDER BY o.order_date ASC
+	</select>
+	
+	<select id="getSaleCount" parameterType="String" resultType="int">
+		SELECT
+			NVL(SUM(art_sale_count), 0)
+		FROM
+			art_tb
+		WHERE
+			writer_code_seq=#{writer}
+	</select>
+	
+	<select id="likeArt" parameterType="String" resultType="int">
+		SELECT
+			COUNT(*)
+		FROM
+			wishlist_tb w
+		INNER JOIN
+			art_tb a
+		ON
+			a.art_code_seq=w.wishlist_option_code
+		WHERE
+			w.wishlist_option='좋아하는작품'
+			AND
+			a.writer_code_seq=#{writer}
+	</select>
+	
+	<select id="likeWriter" parameterType="String" resultType="int">
+		SELECT
+			COUNT(*)
+		FROM
+			wishlist_tb wish
+		INNER JOIN
+			writer_tb w
+		ON
+			w.writer_code_seq = wish.wishlist_option_code
+		WHERE
+			wish.wishlist_option='좋아하는작가'
+			AND
+			w.writer_code_seq=#{writer}
+	</select>
+
+</mapper>
