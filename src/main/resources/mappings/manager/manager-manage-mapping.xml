@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="managerManageDAO">
+
+	<select id="selectArt" resultType="ManagerManageArtVO">
+		SELECT
+			a.art_code_seq, a.art_photo, a.art_name, a.art_category, a.art_sale_state, a.art_sale_count,
+			w.writer_brand_name, w.writer_name
+		FROM
+			art_tb a, writer_tb w
+		WHERE 
+			w.writer_code_seq = a.writer_code_seq
+		ORDER BY
+			a.art_code_seq ASC
+	</select>
+	
+	<select id="selectClass" resultType="ManagerManageClassVO">
+		SELECT
+			m.midas_code_seq, m.midas_img, m.midas_name, m.midas_category, m.midas_run, m.midas_start_date, 
+			m.midas_end_date, w.writer_brand_name, w.writer_name
+		FROM
+			midas_tb m, writer_tb w
+		WHERE
+			m.writer_code_seq = w.writer_code_seq
+		ORDER BY
+			m.midas_code_seq ASC
+	</select>
+	
+	<delete id="deleteArt" parameterType="hashmap">
+		DELETE
+			art_tb
+		WHERE
+			art_code_seq=#{artCode}
+	</delete>
+	
+	<delete id="deleteMidas" parameterType="hashmap">
+		DELETE
+			midas_tb
+		WHERE
+			midas_code_seq=#{midasCode}
+	</delete>
+
+</mapper>

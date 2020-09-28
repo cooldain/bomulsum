@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ProductInfoDAO">
+
+	<resultMap id="artList" type="com.web.bomulsum.writer.art.repository.WriterArtVO">	
+		<result property="artCodeSeq" column="art_code_seq"/>
+		<result property="writerCodeSeq" column="writer_code_seq"/>
+		<result property="artPhoto" column="art_photo"/>
+		<result property="artName" column="art_name"/>
+		<result property="artPrice" column="art_price"/>
+		<result property="artDiscount" column="art_discount"/>
+		<result property="artAmount" column="art_amount"/>
+		<result property="artDescription" column="art_description"/>
+		<result property="artCategory" column="art_category"/>
+		<result property="artKeyword" column="art_keyword"/>
+		<result property="artViewCount" column="art_viewcount"/>
+		<result property="artPoint" column="art_point"/>
+		<result property="artSaleCount" column="art_sale_count"/>
+		<result property="artSaleState" column="art_sale_state"/>
+		<result property="artRecommendTime" column="art_recommend_time"/>
+		<result property="artRegisterDate" column="art_register_date"/>
+		<result property="temp" column="art_recommend_temp"/>
+	</resultMap>
+
+	<resultMap id="artInfoList" type="com.web.bomulsum.writer.art.repository.WriterArtInfoDetailVO">	
+		<result property="artInfoDetailCodeSeq" column="art_info_detail_code"/>
+		<result property="artInfoDetailCategory" column="art_info_detail_category"/>
+		<result property="artInfoDetailWeight" column="art_info_detail_weight"/>
+		<result property="artInfoDetailFrom" column="art_info_detail_from"/>
+		<result property="artInfoDetailMaterial" column="art_info_detail_material"/>
+		<result property="artInfoDetailExpdate" column="art_info_detail_expdate"/>
+		<result property="artInfoDetailMust" column="art_info_detail_must"/>
+		<result property="artInfoDetailComponent" column="art_info_detail_component"/>
+		<result property="artInfoDetailWay" column="art_info_detail_way"/>	
+	</resultMap>
+	
+	<resultMap id="artOptionList" type="com.web.bomulsum.writer.art.repository.WriterArtOptionVO">	
+		<result property="artOptionSeq" column="art_option_seq"/>
+		<result property="artOptionCategory" column="art_option_category"/>
+		<result property="artOptionName" column="art_option_name"/>
+		<result property="artOptionPrice" column="art_option_price"/>
+	</resultMap>
+	<resultMap type="com.web.bomulsum.user.productInfo.repository.WriterVO" id="writerVO">
+		<result property="writerCodeSeq" column="writer_code_seq"/>
+		<result property="writerName" column="writer_name"/>
+		<result property="writerEmail" column="writer_email"/>
+		<result property="writerPassword" column="writer_password"/>
+		<result property="writerPhone" column="writer_phone"/>
+		<result property="writerUrl" column="writer_url"/>
+		<result property="writerHonorName" column="writer_honor_name"/>
+		<result property="writerAboutDispatch" column="writer_about_dispatch"/>
+		<result property="writerHonorAccount" column="writer_honor_account"/>
+		<result property="writeProfileImg" column="writer_profile_img"/>
+		<result property="writerCoverImg" column="writer_cover_img"/>
+		<result property="writerBrandName" column="writer_brand_name"/>
+		<result property="writerIntro" column="writer_intro "/>
+		<result property="writerPayment" column="writer_payment"/>
+		<result property="writerSendPrice" column="writer_send_price"/>
+		<result property="writerPlusPrice" column="writer_plus_price"/>
+		<result property="writerSendfreeCase" column="writer_sendfree_case"/>
+		<result property="writerRefund" column="writer_refund"/>
+		<result property="writerPolicyAbout" column="writer_policy_about"/>
+	</resultMap>
+	
+	<resultMap type="com.web.bomulsum.user.productInfo.repository.CommentVO" id="comment">
+		<result column="comment_seq" property="commentSeq"/>
+		<result column="member_code_seq" property="memberCodeSeq"/>
+		<result column="art_code_seq" property="artCodeSeq"/>
+		<result column="comment_content" property="commentContent"/>
+		<result column="comment_status" property="commentStatus"/>
+		<result column="comment_date" property="commentDate"/>
+		<result column="comment_recomment" property="commentRecomment"/>
+		<result column="comment_recomment_date" property="commentRecommentDate"/>
+		<result column="writer_code_seq" property="writerCodeSeq"/>
+		<result column="member_profile" property="memberProfile"/>
+		<result column="member_name" property="memberName"/>
+	</resultMap>
+	
+	<resultMap type="com.web.bomulsum.user.productInfo.repository.ReviewVO" id="review">
+		<result column="member_profile" property="memberImg" />
+		<result column="member_name" property="memberName" />
+		<result column="review_star" property="reviewStar" />
+		<result column="review_date" property="reviewDate" />
+		<result column="review_comment" property="reviewContent" />
+	</resultMap>
+	
+	<select id="getListProductInfo" resultMap="artList">
+		SELECT
+			* 
+		FROM 
+			art_tb 
+		WHERE 
+			art_code_seq=#{artCodeSeq}
+	</select>
+	<select id="getListProductInfoOption" resultMap="artOptionList">
+		SELECT 
+			*
+		FROM
+			art_option_tb
+		WHERE 
+			art_code_seq=#{artCodeSeq}
+		ORDER BY 
+			art_option_seq
+	</select>
+	<select id="getListProductartInfoList" resultMap="artInfoList">
+		SELECT 
+			*
+		FROM
+			art_info_detail_tb
+		WHERE 
+			art_code_seq=#{artCodeSeq}
+	</select>
+	<select id="getWriterInfo" resultMap="writerVO">
+		SELECT
+			writer_code_seq,
+			writer_name,
+			writer_email,
+			writer_password,
+			writer_phone,
+			writer_url,
+			writer_honor_name,
+			writer_about_dispatch,
+			writer_honor_account,
+			writer_profile_img,
+			writer_cover_img,
+			writer_brand_name,
+			writer_intro,
+			writer_payment,
+			writer_send_price,
+			writer_plus_price,
+			writer_sendfree_case,
+			writer_refund,
+			writer_policy_about
+		FROM
+			writer_tb
+		WHERE
+			writer_code_seq=#{writerCodeSeq}
+	</select>
+	
+	<select id="selectRecentlyView" parameterType="hashMap" resultType="int">
+		SELECT
+			COUNT(*)
+		FROM
+			wishlist_tb
+		WHERE
+			member_code_seq=#{memberCode}
+			AND
+			wishlist_option='최근본작품'
+			AND
+			wishlist_option_code=#{artCode}
+	</select>
+	
+	<update id="updateRecentlyView" parameterType="hashMap">
+		UPDATE
+			wishlist_tb
+		SET
+			wishlist_time=SYSDATE
+		WHERE
+			member_code_seq=#{memberCode}
+			AND
+			wishlist_option='최근본작품'
+			AND
+			wishlist_option_code=#{artCode}
+	</update>
+	
+	<insert id="insertRecentlyView" parameterType="hashMap">
+		INSERT INTO wishlist_tb
+		(
+			wishlist_seq,
+			member_code_seq,
+			wishlist_option,
+			wishlist_option_code
+		)
+		VALUES
+		(
+			'wishlist_seq' || TO_CHAR(wishlist_sq.nextval),
+			#{memberCode},
+			'최근본작품',
+			#{artCode}
+		)
+	</insert>
+
+	<update id="updateViewCount" parameterType="String">
+		UPDATE 
+			art_tb
+		SET
+			art_viewcount = art_viewcount + 1
+		WHERE
+			art_code_seq = #{artCodeSeq}
+	</update>
+	<select id="selectOherProduct" resultMap="artList" >
+		SELECT
+			*
+		FROM
+			art_tb
+		WHERE
+			writer_code_seq=#{writerCodeSeq}
+	</select>
+	<insert id="commentInsert" parameterType="hashMap">
+		INSERT INTO comment_tb
+			(
+			comment_seq,
+			member_code_seq,
+			art_code_seq,
+			comment_content,
+			comment_status,
+			comment_date,
+			writer_code_seq
+			)
+		VALUES(
+			'comment_seq' || TO_CHAR(comment_sq.nextval),
+			#{memberCodeSeq},
+			#{artCodeSeq},
+			#{commentContent},
+			'Y',
+			SYSDATE,
+			#{writerCodeSeq}
+		)
+	</insert>
+	<select id="commentSelect" parameterType="String" resultMap="comment">
+	SELECT
+
+    	member_code_seq,
+    	comment_seq,
+    	art_code_seq,
+    	comment_content,
+    	comment_status,
+    	comment_date,
+    	comment_recomment,
+    	comment_recomment_date,
+    	writer_code_seq,
+    	member_profile,
+    	member_name
+	FROM 
+		comment_tb 
+	JOIN 
+		member_tb 
+	USING
+		(
+			member_code_seq
+		) 
+	WHERE 
+		art_code_seq=#{artCodeSeq} 
+	ORDER BY 
+		comment_date 
+	ASC
+	</select>
+	
+	<select id="getMemberImg" parameterType="String" resultType="String">
+		SELECT
+			member_profile
+		FROM
+			member_tb
+		WHERE
+			member_code_seq=#{memberCode}
+	</select>
+	
+	<select id="getReviews" parameterType="String" resultMap="review">
+		SELECT
+			m.member_name,
+			m.member_profile,
+		    r.review_date,
+		    r.review_comment,
+		    r.review_star
+		FROM
+			review_tb r
+		INNER JOIN
+			member_tb m
+		ON
+			r.member_code_seq=m.member_code_seq
+		WHERE
+			r.art_code_seq=#{artCodeSeq}
+		ORDER BY
+			r.review_date
+	</select>
+	
+	<select id="getWriterAllArticleStar" parameterType="String" resultType="int">
+		SELECT
+			r.review_star
+		FROM
+			review_tb r
+		INNER JOIN
+			art_tb a
+		ON
+			a.art_code_seq = r.art_code_seq
+		WHERE
+			a.writer_code_seq=#{writerCode}
+	</select>
+	
+	<select id="getWishForWriter" parameterType="String" resultType="int">
+		SELECT
+			COUNT(*)
+		FROM
+			wishlist_tb
+		WHERE
+			wishlist_option='좋아하는작품'
+			AND
+			wishlist_option_code=#{artCode}
+	</select>
+	
+	<select id="checkWishForWriter" parameterType="hashMap" resultType="int">
+		SELECT
+			COUNT(*)
+		FROM
+			wishlist_tb
+		WHERE
+			wishlist_option='좋아하는작가'
+			AND
+			member_code_seq=#{memberCode}
+			AND
+			wishlist_option_code=#{writerCode}
+	</select>
+	
+	<select id="checkWishForArticle" parameterType="hashMap" resultType="int">
+		SELECT
+			COUNT(*)
+		FROM
+			wishlist_tb
+		WHERE
+			wishlist_option='좋아하는작품'
+			AND
+			member_code_seq=#{memberCode}
+			AND
+			wishlist_option_code=#{artCode}
+	</select>
+	
+	<insert id="insertShopBag" parameterType="com.web.bomulsum.user.productInfo.repository.TestVo">
+		INSERT INTO cart_tb
+		(
+			cart_seq,
+			art_code_seq,
+			member_code_seq,
+			art_option_seq,
+			art_count
+		)
+		VALUES
+		(
+			'cart_seq' || TO_CHAR(cart_sq.nextval),
+			#{artCode},
+			#{memberCode},
+			#{optionCode},
+			#{artCount}
+		)
+	</insert>
+	
+	<select id="checkShopBag" parameterType="hashMap" resultType="int">
+		SELECT
+			COUNT(*)
+		FROM
+			cart_tb
+		WHERE
+			art_code_seq=#{code}
+			AND
+			member_code_seq=#{member}
+	</select>
+	
+</mapper>

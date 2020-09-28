@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="writerGempointDAO">
+
+	<resultMap id="gempointMap" type="HashMap">
+		<id column="gem_seq" property="gemSeq"/>
+		<id column="writer_code_seq" property="writerCodeSeq"/>
+		<id column="gem_usage" property="gemUsage"/>
+		<id column="gem_price" property="gemPrice"/>
+		<id column="gem_log" property="gemLog"/>
+		<id column="gem_date" property="gemDate"/>
+	</resultMap>
+	<!--  
+	<resultMap id="gempointMap" type="com.web.bomulsum.writer.gempoint.repository.WriterGempointVO">
+		<result property="gemSeq" column="gem_seq"/>
+		<result property="writeCodeSeq" column="writer_code_seq"/>
+		<result property="gemPoint" column="gem_point"/>
+		<result property="gemUsage" column="gem_usage"/>
+		<result property="gemPrice" column="gem_price"/>
+		<result property="gemLog" column="gem_log"/>
+		<result property="gemDate" column="gem_date"/>
+	</resultMap>
+-->
+	
+	<!-- 젬포인트 이용내역조회 -->
+	<select id="gempointSelect" parameterType="String" resultMap="gempointMap">
+		SELECT gem_seq, writer_code_seq, gem_usage, 
+		gem_price, gem_log, TO_CHAR(gem_date,'YYYY-MM-DD') as gem_date
+		
+		FROM gem_tb
+		WHERE writer_code_seq = #{writerCodeSeq}
+		ORDER BY gem_seq DESC
+		
+	</select>
+	
+	<!-- 젬포인트 보유포인트 조회  -->
+	<select id="gempointSum" resultMap="gempointMap" parameterType="String" >
+     	SELECT nvl(SUM(gem_price),0) as gemSum
+		FROM gem_tb
+		WHERE writer_code_seq = #{writerCodeSeq}
+	</select>
+	
+	<!-- 젬포인트 충전 -->
+	<!--  -->
+	<insert id="gempointChargeInsert" parameterType="hashMap">
+		INSERT INTO gem_tb
+		(gem_seq, writer_code_seq, gem_usage, gem_price, gem_log)
+		VALUES('gem_seq' || TO_CHAR(gem_sq.nextval), #{writerCodeSeq}, 'N', #{chargeMoney},'젬포인트를 충전하셨습니다. 감사합니다!')
+	</insert>
+</mapper>
+
+

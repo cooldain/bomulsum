@@ -1,0 +1,665 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="articleDao">
+
+	<resultMap
+		type="com.web.bomulsum.user.article.repository.UserArticleCategoryVO"
+		id="articleVO">
+		<result property="artCode" column="art_code_seq" />
+		<result property="writerCode" column="writer_code_seq" />
+		<result property="writerName" column="writer_name" />
+		<result property="writerBrandName" column="writer_brand_name" />
+		<result property="writerSendPrice" column="writer_send_price" />
+		<result property="artPhoto" column="art_photo" />
+		<result property="artCategory" column="art_category" />
+		<result property="artName" column="art_name" />
+		<result property="artPrice" column="art_price" />
+		<result property="artDiscount" column="art_discount" />
+		<result property="artViewcount" column="art_viewcount" />
+		<result property="artKeyword" column="art_keyword" />
+		<result property="artRegisterDate" column="art_register_date"/>
+	</resultMap>
+	
+	<resultMap type="com.web.bomulsum.user.article.repository.UserMidasClassVO" id="midasVO">
+		<result property="midasCodeSeq" column="midas_code_seq"/>
+		<result property="midasKeyword" column="midas_keyword"/>
+		<result property="midasAddress1" column="midas_address1"/>
+		<result property="midasAddress2" column="midas_address2"/>
+		<result property="midasCategory" column="midas_category"/>
+		<result property="midasName" column="midas_name"/>
+		<result property="midasImg" column="midas_img"/>
+	</resultMap>
+
+	<sql id="header">
+		SELECT T.*
+		FROM (
+		SELECT ROWNUM AS RNUM, A.*
+		FROM (
+	</sql>
+	<sql id="footer">
+		) A ) T
+		WHERE T.RNUM BETWEEN #{startNum} AND #{endNum}
+	</sql>
+
+	<select id="articleForCategory" parameterType="com.web.bomulsum.user.article.repository.UserArticlePagingVO" 
+		resultMap="articleVO">
+		<include refid="header"/>
+		SELECT
+			a.art_code_seq,
+			a.writer_code_seq,
+			w.writer_name,
+			w.writer_brand_name,
+			w.writer_send_price,
+			a.art_photo,
+			a.art_category,
+			a.art_name,
+			a.art_price,
+			a.art_discount,
+			a.art_viewcount,
+			a.art_keyword,
+			a.art_register_date
+		FROM
+			art_tb a
+		INNER JOIN
+			writer_tb w
+		ON
+			w.writer_code_seq = a.writer_code_seq
+		WHERE
+			(
+				a.art_category=#{category}
+				AND
+				a.art_sale_state='Y'
+				<if test="sendPrice != null">
+					AND
+					w.writer_send_price = 0
+				</if>
+				<if test="filtArr != null">
+					AND
+					<foreach collection="filtArr" item="filt" open="(" close=")" separator="or">
+						<choose>
+							<when test="filt == '1만원 미만'">
+								(a.art_discount <![CDATA[<]]> 10000)
+							</when>
+							<when test="filt == '1만원대'">
+								(
+								a.art_discount >= 10000
+								AND
+								a.art_discount <![CDATA[<]]> 20000
+								)
+							</when>
+							<when test="filt == '2만원대'">
+								(
+								a.art_discount >= 20000
+								AND
+								a.art_discount <![CDATA[<]]> 30000
+								)
+							</when>
+							<when test="filt == '3만원대'">
+								(
+								a.art_discount >= 30000
+								AND
+								a.art_discount <![CDATA[<]]> 40000
+								)
+							</when>
+							<when test="filt == '4만원대'">
+								(
+								a.art_discount >= 40000
+								AND
+								a.art_discount <![CDATA[<]]> 50000
+								)
+							</when>
+							<when test="filt == '5만원대'">
+								(
+								a.art_discount >= 50000
+								AND
+								a.art_discount <![CDATA[<]]> 60000
+								)
+							</when>
+						</choose>
+					</foreach>
+				</if>
+			)
+			ORDER BY
+			<if test="orderBy == 'orderByLike'">
+				art_viewcount DESC
+			</if>
+			<if test="orderBy == 'orderByRecently'">
+				art_register_date DESC
+			</if>
+			<if test="orderBy == 'orderByLowPrice'">
+				art_discount ASC
+			</if>
+			<if test="orderBy == 'orderByHighPrice'">
+				art_discount DESC
+			</if>
+		<include refid="footer"/>
+	</select>
+	
+	<select id="getCategoryArticleCount" 
+		parameterType="com.web.bomulsum.user.article.repository.UserArticlePagingVO" resultType="int">
+	SELECT
+		COUNT(*)
+	FROM
+		art_tb a
+	INNER JOIN
+		writer_tb w
+	ON
+		w.writer_code_seq = a.writer_code_seq
+	WHERE
+		(
+			a.art_category=#{category}
+			AND
+			a.art_sale_state='Y'
+			<if test="sendPrice != null">
+				AND
+				w.writer_send_price = 0
+			</if>
+			<if test="filtArr != null">
+				AND
+				<foreach collection="filtArr" item="filt" open="(" close=")" separator="or">
+					<choose>
+						<when test="filt == '1만원 미만'">
+							(a.art_discount <![CDATA[<]]> 10000)
+						</when>
+						<when test="filt == '1만원대'">
+							(
+							a.art_discount >= 10000
+							AND
+							a.art_discount <![CDATA[<]]> 20000
+							)
+						</when>
+						<when test="filt == '2만원대'">
+							(
+							a.art_discount >= 20000
+							AND
+							a.art_discount <![CDATA[<]]> 30000
+							)
+						</when>
+						<when test="filt == '3만원대'">
+							(
+							a.art_discount >= 30000
+							AND
+							a.art_discount <![CDATA[<]]> 40000
+							)
+						</when>
+						<when test="filt == '4만원대'">
+							(
+							a.art_discount >= 40000
+							AND
+							a.art_discount <![CDATA[<]]> 50000
+							)
+						</when>
+						<when test="filt == '5만원대'">
+							(
+							a.art_discount >= 50000
+							AND
+							a.art_discount <![CDATA[<]]> 60000
+							)
+						</when>
+					</choose>
+				</foreach>
+			</if>
+		)
+	
+	</select>
+	
+	<insert id="likeArticle" parameterType="hashMap">
+		INSERT INTO wishlist_tb
+		(
+			wishlist_seq,
+			member_code_seq,
+			wishlist_option,
+			wishlist_option_code
+		)
+		VALUES
+		(
+			'wishlist_seq' || TO_CHAR(wishlist_sq.nextval),
+			#{member},
+			#{option},
+			#{optionCode}
+		)
+	</insert>
+	
+	<delete id="nonLikeArticle" parameterType="hashMap">
+		DELETE FROM
+			wishlist_tb
+		WHERE
+			member_code_seq = #{member}
+			AND
+			wishlist_option = #{option}
+			AND
+			wishlist_option_code = #{optionCode}
+	</delete>
+	
+	<select id="getLikeArticles" parameterType="String" resultType="String">
+		SELECT
+			wishlist_option_code
+		FROM
+			wishlist_tb
+		WHERE
+			member_code_seq=#{member}
+			AND
+			wishlist_option='좋아하는작품'
+	</select>
+	
+	<!-- 검색어 디비 select -->
+	<select id="wordSelect" parameterType="String" resultType="int">
+		SELECT
+			keyword_count
+		FROM
+			keyword_tb
+		WHERE
+			keyword_word=#{word}
+	</select>
+	
+	<!-- 검색어 디비 insert -->
+	<insert id="wordInsert" parameterType="String">
+		INSERT INTO keyword_tb
+		(
+			keyword_seq,
+			keyword_word
+		)
+		VALUES
+		(
+			'keyword_sq' || TO_CHAR(keyword_sq.nextval),
+			#{word}
+		)
+	</insert>
+	
+	<update id="wordUpdate" parameterType="hashMap">
+		UPDATE 
+			keyword_tb
+		SET
+			keyword_count = #{count},
+			keyword_date = #{time}
+		WHERE
+			keyword_word = #{word}
+	</update>
+	
+	<!-- 검색 처리 (작품) -->
+	
+	<select id="getArticleReview" parameterType="String" resultType="int">
+		SELECT
+			review_star
+		FROM
+			review_tb
+		WHERE
+			art_code_seq=#{artCode}
+	</select>
+	
+	<select id="articleForSearch" parameterType="com.web.bomulsum.user.article.repository.UserSearchPagingVO" 
+		resultMap="articleVO">
+		<include refid="header"/>
+		SELECT
+			a.art_code_seq,
+			a.writer_code_seq,
+			w.writer_name,
+			w.writer_brand_name,
+			w.writer_send_price,
+			a.art_photo,
+			a.art_category,
+			a.art_name,
+			a.art_price,
+			a.art_discount,
+			a.art_viewcount,
+			a.art_keyword,
+			a.art_register_date
+		FROM
+			art_tb a
+		INNER JOIN
+			writer_tb w
+		ON
+			w.writer_code_seq = a.writer_code_seq
+		WHERE
+			(
+				(
+					a.art_keyword LIKE '%' || #{word} || '%'
+					OR
+					a.art_name LIKE '%' || #{word} || '%'
+					OR
+					w.writer_name LIKE '%' || #{word} || '%'
+					OR
+					w.writer_brand_name LIKE '%' || #{word} || '%'
+				)
+				AND
+				a.art_sale_state='Y'
+				<if test="category != null">
+					AND
+					<foreach collection="category" item="category" open="(" close=")" separator="or">
+						a.art_category=#{category}
+					</foreach>
+				</if>
+				<if test="sendPrice != null">
+					AND
+					w.writer_send_price = 0
+				</if>
+				<if test="filtArr != null">
+					AND
+					<foreach collection="filtArr" item="filt" open="(" close=")" separator="or">
+						<choose>
+							<when test="filt == '1만원 미만'">
+								(a.art_discount <![CDATA[<]]> 10000)
+							</when>
+							<when test="filt == '1만원대'">
+								(
+								a.art_discount >= 10000
+								AND
+								a.art_discount <![CDATA[<]]> 20000
+								)
+							</when>
+							<when test="filt == '2만원대'">
+								(
+								a.art_discount >= 20000
+								AND
+								a.art_discount <![CDATA[<]]> 30000
+								)
+							</when>
+							<when test="filt == '3만원대'">
+								(
+								a.art_discount >= 30000
+								AND
+								a.art_discount <![CDATA[<]]> 40000
+								)
+							</when>
+							<when test="filt == '4만원대'">
+								(
+								a.art_discount >= 40000
+								AND
+								a.art_discount <![CDATA[<]]> 50000
+								)
+							</when>
+							<when test="filt == '5만원대'">
+								(
+								a.art_discount >= 50000
+								AND
+								a.art_discount <![CDATA[<]]> 60000
+								)
+							</when>
+						</choose>
+					</foreach>
+				</if>
+			)
+			ORDER BY
+			<if test="orderBy == 'orderByLike'">
+				art_viewcount DESC
+			</if>
+			<if test="orderBy == 'orderByRecently'">
+				art_register_date DESC
+			</if>
+			<if test="orderBy == 'orderByLowPrice'">
+				art_discount ASC
+			</if>
+			<if test="orderBy == 'orderByHighPrice'">
+				art_discount DESC
+			</if>
+		<include refid="footer"/>
+	</select>
+	
+	
+	<select id="getSearchArticleCount" parameterType="com.web.bomulsum.user.article.repository.UserSearchPagingVO"
+		resultType="int">
+		SELECT
+			COUNT(*)
+		FROM
+			art_tb a
+		INNER JOIN
+			writer_tb w
+		ON
+			w.writer_code_seq = a.writer_code_seq
+		WHERE
+		(
+			(
+				a.art_keyword LIKE '%' || #{word} || '%'
+				OR
+				a.art_name LIKE '%' || #{word} || '%'
+				OR
+				w.writer_name LIKE '%' || #{word} || '%'
+				OR
+				w.writer_brand_name LIKE '%' || #{word} || '%'
+			)
+			AND
+			a.art_sale_state='Y'
+			<if test="category != null">
+				AND
+				<foreach collection="category" item="category" open="(" close=")" separator="or">
+					a.art_category=#{category}
+				</foreach>
+			</if>
+			<if test="sendPrice != null">
+				AND
+				w.writer_send_price = 0
+			</if>
+			<if test="filtArr != null">
+				AND
+				<foreach collection="filtArr" item="filt" open="(" close=")" separator="or">
+					<choose>
+						<when test="filt == '1만원 미만'">
+							(a.art_discount <![CDATA[<]]> 10000)
+						</when>
+						<when test="filt == '1만원대'">
+							(
+							a.art_discount >= 10000
+							AND
+							a.art_discount <![CDATA[<]]> 20000
+							)
+						</when>
+						<when test="filt == '2만원대'">
+							(
+							a.art_discount >= 20000
+							AND
+							a.art_discount <![CDATA[<]]> 30000
+							)
+						</when>
+						<when test="filt == '3만원대'">
+							(
+							a.art_discount >= 30000
+							AND
+							a.art_discount <![CDATA[<]]> 40000
+							)
+						</when>
+						<when test="filt == '4만원대'">
+							(
+							a.art_discount >= 40000
+							AND
+							a.art_discount <![CDATA[<]]> 50000
+							)
+						</when>
+						<when test="filt == '5만원대'">
+							(
+							a.art_discount >= 50000
+							AND
+							a.art_discount <![CDATA[<]]> 60000
+							)
+						</when>
+					</choose>
+				</foreach>
+			</if>
+		)
+	</select>
+	
+	<!-- 금손클래스 검색 처리 -->
+	<select id="getSearchClassCount" parameterType="String" resultType="int">
+		SELECT
+			COUNT(*)
+		FROM
+			midas_tb m
+		INNER JOIN
+			writer_tb w
+		ON
+			w.writer_code_seq = m.writer_code_seq
+		WHERE
+		(
+			(
+				m.midas_keyword LIKE '%' || #{word} || '%'
+				OR
+				m.midas_name LIKE '%' || #{word} || '%'
+				OR
+                m.midas_address1 LIKE '%' || #{word} || '%'
+                OR
+                m.midas_address2 LIKE '%' || #{word} || '%'
+                OR
+				w.writer_name LIKE '%' || #{word} || '%'
+				OR
+				w.writer_brand_name LIKE '%' || #{word} || '%'
+			)
+			AND
+			m.midas_run='Y'
+		)
+	</select>
+	
+	<select id="getSearchClass" parameterType="com.web.bomulsum.user.article.repository.UserSearchPagingVO" resultMap="midasVO">
+		<include refid="header"/>
+			SELECT
+				m.midas_code_seq,
+				m.midas_keyword,
+				m.midas_address1,
+				m.midas_address2,
+				m.midas_category,
+				m.midas_name,
+				m.midas_img
+			FROM
+				midas_tb m
+			INNER JOIN
+				writer_tb w
+			ON
+				w.writer_code_seq = m.writer_code_seq
+			WHERE
+			(
+				(
+					m.midas_keyword LIKE '%' || #{word} || '%'
+					OR
+					m.midas_name LIKE '%' || #{word} || '%'
+					OR
+	                m.midas_address1 LIKE '%' || #{word} || '%'
+	                OR
+	                m.midas_address2 LIKE '%' || #{word} || '%'
+	                OR
+					w.writer_name LIKE '%' || #{word} || '%'
+					OR
+					w.writer_brand_name LIKE '%' || #{word} || '%'
+				)
+				AND
+				m.midas_run='Y'
+			)
+		<include refid="footer"/>
+	</select>
+	
+	<select id="getLikeMidas" parameterType="String" resultType="String">
+		SELECT
+			wishlist_option_code
+		FROM
+			wishlist_tb
+		WHERE
+			member_code_seq=#{member}
+			AND
+			wishlist_option='즐겨찾는클래스'
+	</select>
+	
+	<select id="getClassReviewCount" parameterType="String" resultType="int">
+		SELECT
+			review_star
+		FROM
+			review_tb
+		WHERE
+			art_code_seq=#{midasCode}
+	</select>
+	
+	
+	<!-- 실시간 검색어 -->
+	<select id="realTimeKeyword" resultType="String">
+		SELECT
+			keyword_word
+		FROM
+		(
+			SELECT 
+				* 
+			FROM
+				keyword_tb 
+			ORDER BY
+				keyword_count
+			DESC
+		)
+		WHERE ROWNUM <![CDATA[<]]>= 10
+	</select>
+	
+	
+	
+	<!-- 인기작품, 추천작품, 작가님추천 -->
+	<select id="getOrderByArticleCount" 
+		parameterType="com.web.bomulsum.user.article.repository.UserOrderByArticlePagingVO" resultType="int">
+	SELECT
+		COUNT(*)
+	FROM
+		art_tb
+	WHERE
+		art_sale_state='Y'
+	
+	</select>
+	
+	
+	<select id="getListForOrderBy" parameterType="com.web.bomulsum.user.article.repository.UserOrderByArticlePagingVO"
+		resultMap="articleVO">
+		<include refid="header"/>
+		SELECT
+			a.art_code_seq,
+			a.writer_code_seq,
+			w.writer_name,
+			w.writer_brand_name,
+			w.writer_send_price,
+			a.art_photo,
+			a.art_category,
+			a.art_name,
+			a.art_price,
+			a.art_discount,
+			a.art_viewcount,
+			a.art_keyword,
+			a.art_register_date
+		FROM
+			art_tb a
+		INNER JOIN
+			writer_tb w
+		ON
+			w.writer_code_seq = a.writer_code_seq
+		WHERE
+			(
+				a.art_sale_state='Y'
+				<if test="orderBy == 'artistRecommend'">
+					AND
+					a.art_recommend_state='Y'
+				</if>
+			)
+			ORDER BY
+			<if test="orderBy == 'bestWork'">
+				a.art_viewcount DESC
+			</if>
+			<if test="orderBy == 'recommendWork'">
+				a.art_register_date DESC
+			</if>
+			<if test="orderBy == 'artistRecommend'">
+				a.art_recommend_time DESC
+			</if>
+		<include refid="footer"/>
+	</select>
+	
+	<select id="getCategoryImg" parameterType="String" resultType="String">
+	SELECT
+		art_photo
+	FROM
+		(
+            SELECT 
+                a.* 
+            FROM 
+                art_tb a 
+            WHERE 
+                art_category=#{categories}
+            ORDER BY art_viewcount DESC
+        )
+	WHERE
+		ROWNUM = 1
+	</select>
+	
+</mapper>
+
+

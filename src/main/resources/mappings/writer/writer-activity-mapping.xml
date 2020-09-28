@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="writerActivityDAO">
+
+	<resultMap type="com.web.bomulsum.writer.activity.repository.AlarmVO" id="alarmListMap">
+		<id column="ALARM_SEQ" property="alarmSeq"/>
+		<result column="SENDER_CODE" property="senderCode"/>
+		<result column="RECIPIENT_CODE" property="recipientCode"/>
+		<result column="ALARM_TITLE" property="alarmTitle"/>
+		<result column="ALARM_DATE" property="alarmDate"/>
+		<result column="ALARM_CONTENT" property="alarmContent"/>
+		<result column="ALARM_READ" property="alarmRead"/>
+		<result column="member_name" property="memberName"/>
+	</resultMap>
+	
+	<resultMap type="com.web.bomulsum.writer.activity.repository.WriterActivityVO" id="reviewListMap">
+		<id column="REVIEW_CODE_SEQ" property="reviewCodeSeq"/>
+		<result column="buy_art_code_seq" property="buyArtCodeSeq"/>
+		<result column="MEMBER_CODE_SEQ" property="memberCodeSeq"/>
+		<result column="ART_CODE_SEQ" property="artCodeSeq"/>
+		<result column="REVIEW_DATE" property="reviewDate"/>
+		<result column="REVIEW_COMMENT" property="reviewComment"/>
+		<result column="REVIEW_STAR" property="reviewStar"/>
+		<result column="REVIEW_PHOTO" property="reviewPhoto"/>
+		<result column="REVIEW_COMMENT_RE" property="reviewCommentRe"/>
+		<result column="REVIEW_COMMENT_RE_STATUS" property="reviewCommentReStatus"/>
+		
+		<result column="ART_NAME" property="artName"/>
+		<result column="MEMBER_NAME" property="memberName"/>
+		<result column="MEMBER_PROFILE" property="memberProfile"/>
+		<result column="ART_PHOTO" property="artPhoto"/>
+	</resultMap>
+ 
+ 
+ 	<!-- 회원이 남긴 후기에 댓글을 등록 & 알람 테이블 인써트 -->
+ 	<update id="updateReviewComment" parameterType="com.web.bomulsum.writer.activity.repository.WriterActivityVO">
+ 		UPDATE review_tb
+		SET review_comment_re = #{reviewCommentRe},
+		    review_comment_re_date = SYSDATE,
+		    review_comment_re_status = 'Y'
+		WHERE review_code_seq = #{reviewCodeSeq}
+ 	</update>
+ 	<insert id="insertAlarmMBoard" parameterType="com.web.bomulsum.writer.activity.repository.WriterActivityVO">
+		INSERT INTO alarm_tb
+		(
+			alarm_seq,
+			sender_code,
+			recipient_code,
+			alarm_title,
+			alarm_content
+		)
+		VALUES
+		(
+			'alarm_seq' || TO_CHAR(alarm_sq.nextval),
+			#{writerSeq},
+			#{memberCodeSeq},
+			'댓글',
+			#{alarmContent}
+		)
+	</insert>
+ 	
+ 
+	<!-- 댓글 등록 / 회원이 이미 작성한 댓글에 다시 댓글을 다는 형식이라 업데이트문을 이용한다.-->
+	<!-- 코멘트 테이블 업데이트-->
+	<update id="addRecomment" parameterType="com.web.bomulsum.writer.activity.repository.CommentsListVO">
+		UPDATE comment_tb
+		SET comment_status = 'Y',
+			comment_recomment = #{comment_recomment},
+			comment_recomment_date = SYSDATE
+		WHERE comment_seq = #{comment_seq}
+	</update>
+	<!-- 알람테이블 인써트 -->
+	<insert id="addAlarm" parameterType="com.web.bomulsum.writer.activity.repository.AlarmVO">
+		INSERT INTO alarm_tb
+		(
+			alarm_seq,
+			sender_code,
+			recipient_code,
+			alarm_title,
+			alarm_content
+		)
+		VALUES
+		(
+			'alarm_seq' || TO_CHAR(alarm_sq.nextval),
+			#{writerSeq},
+			#{recipientCode},
+			#{alarmTitle},
+			#{alarmContent}
+		)
+	</insert>
+	
+	
+	<!-- 작가로그인한 정보 가져와서, 맴버테이블에서 맴버네임, 아트테이블에서 아트네임 가져오기 -->
+	<select id="selectComment" parameterType="String" resultType="com.web.bomulsum.writer.activity.repository.CommentsListVO">
+		SELECT
+			ROWNUM, X.*
+		FROM
+		(
+			SELECT 
+	        	a.comment_seq, a.comment_content, a.comment_status, a.comment_date, a.writer_code_seq,
+	        	a.comment_recomment, b.member_name, b.member_code_seq, b.member_profile, a.art_code_seq, c.art_name
+			FROM 
+				comment_tb a
+			LEFT OUTER JOIN
+				member_tb b
+			ON
+				a.member_code_seq = b.member_code_seq
+			LEFT OUTER JOIN
+				art_tb c
+			ON
+				a.art_code_seq = c.art_code_seq
+			WHERE 
+				a.writer_code_seq = #{writerSeq}
+			ORDER BY a.comment_date DESC
+		) X
+	</select>
+
+	<!-- 활동 알림 목록 불러오기 // 변수명이 DB 컬럼명하고 달라서 리절트맵 쓰게 되는거임 -->
+	<!-- 작가쪽 전체 발송되는 알람하고, 로그인한 작가 개인 알람을 불러온다. -->
+	<select id="selectAlarmList" parameterType="String" resultMap="alarmListMap">
+		SELECT
+			ROWNUM, X.*
+		FROM
+		(
+			SELECT
+				a.alarm_seq, a.sender_code, a.recipient_code, a.alarm_content,
+				a.alarm_date, a.alarm_read, a.alarm_title, b.member_name, b.member_profile
+			FROM alarm_tb a LEFT OUTER JOIN member_tb b
+			ON
+				a.sender_code = b.member_code_seq
+			WHERE
+				(a.recipient_code = #{writerSeq})
+				OR (a.recipient_code = 'writer_all')
+			ORDER BY a.alarm_date DESC
+		) X
+	</select>
+
+	<select id="selectReviewList" parameterType="String" resultMap="reviewListMap">
+		SELECT
+			ROWNUM, X.*
+		FROM
+		(
+			SELECT
+				a.review_code_seq, a.buy_art_code_seq, a.member_code_seq, a.art_code_seq,
+				a.review_date, a.review_comment, a.review_star, a.review_photo, a.review_comment_re, a.review_comment_re_status,
+				b.member_name, b.member_profile, c.art_name, c.art_photo
+			FROM
+				review_tb a
+			LEFT OUTER JOIN
+				member_tb b
+			ON
+				a.member_code_seq = b.member_code_seq
+			LEFT OUTER JOIN
+				art_tb c
+			ON
+				a.art_code_seq = c.art_code_seq
+			WHERE
+				(c.writer_code_seq = #{writerSeq})
+			ORDER BY a.review_date DESC
+		) X
+	</select>
+
+</mapper>

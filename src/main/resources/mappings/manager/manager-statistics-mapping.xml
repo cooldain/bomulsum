@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="managerStatistics">
+
+	<resultMap type="com.web.bomulsum.manager.statistics.repository.MonthAverVO" id="monthMap">
+		<result column="art_price" property="price" />
+		<result column="art_option_amount" property="amount" />
+		<result column="month" property="date" />
+	</resultMap>
+
+	<select id="yearStatistics" resultType="int">
+		SELECT 
+		    SUM(op.art_price * op.art_option_amount) AS temp 
+		FROM 
+		    order_tb o 
+		INNER JOIN 
+		    buy_writer_tb w 
+		ON 
+		    o.order_code_seq = w.order_code_seq
+		INNER JOIN 
+		    buy_art_tb a
+		ON 
+		    w.buy_writer_code_seq = a.buy_writer_code_seq
+		INNER JOIN 
+		    buy_option_tb op
+		ON 
+		    op.buy_art_code_seq = a.buy_art_code_seq
+		WHERE
+		    (
+		        w.buy_writer_order_status ='결제 완료' 
+		        OR 
+		        w.buy_writer_order_status='배송 완료'
+		    )
+		    AND 
+		    TRUNC(o.order_date,'year') = TRUNC(sysdate,'year')
+		ORDER BY o.order_date ASC
+	</select>
+	
+	<select id="getMonthAverage" resultMap="monthMap">
+		SELECT 
+		    op.art_price, 
+		    op.art_option_amount,
+		    to_char(o.order_date,'YY-MM') AS month
+		FROM 
+		    order_tb o 
+		INNER JOIN 
+		    buy_writer_tb w 
+		ON 
+		    o.order_code_seq = w.order_code_seq
+		INNER JOIN 
+		    buy_art_tb a
+		ON 
+		    w.buy_writer_code_seq = a.buy_writer_code_seq
+		INNER JOIN 
+		    buy_option_tb op
+		ON 
+		    op.buy_art_code_seq = a.buy_art_code_seq
+		WHERE
+		    (
+		        w.buy_writer_order_status ='결제 완료' 
+		        OR 
+		        w.buy_writer_order_status='배송 완료'
+		    )
+		    AND 
+		    TRUNC(o.order_date, 'year') = TRUNC(sysdate, 'year')
+		ORDER BY o.order_date ASC
+	</select>
+	
+	<select id="getSaleCount" resultType="int">
+		SELECT
+			SUM(NVL(art_sale_count, 0))
+		FROM
+			art_tb
+	</select>
+	
+	<select id="gemTotal" resultType="int">
+		SELECT 
+			NVL(SUM(gem_price),0)
+		FROM 
+			gem_tb 
+		WHERE 
+			gem_usage='N'
+	</select>
+	
+	<select id="getCoupon" resultType="int">
+		SELECT
+			NVL(SUM(coupon_price), 0)
+		FROM
+			coupon_tb
+		WHERE
+			coupon_usage='Y'
+	</select>
+	<select id="getPoint" resultType="int">
+		SELECT
+			NVL(SUM(point_amount), 0)
+		FROM
+			point_tb
+		WHERE
+			point_category='사용'
+	</select>
+	
+	<select id="filterData" parameterType="hashMap" resultMap="monthMap">
+		SELECT 
+		    op.art_price, 
+		    op.art_option_amount,
+		    <if test="filtDate == '월별'">
+			    to_char(o.order_date,'YY-MM') AS month
+		    </if>
+		    <if test="filtDate == '일별'">
+		    	to_char(o.order_date,'YY-MM-DD') AS month
+		    </if>
+		FROM 
+		    order_tb o 
+		INNER JOIN 
+		    buy_writer_tb w 
+		ON 
+		    o.order_code_seq = w.order_code_seq
+		INNER JOIN 
+		    buy_art_tb a
+		ON 
+		    w.buy_writer_code_seq = a.buy_writer_code_seq
+		INNER JOIN
+		    art_tb art
+		ON
+		    art.art_code_seq = a.art_code_seq
+		INNER JOIN 
+		    buy_option_tb op
+		ON 
+		    op.buy_art_code_seq = a.buy_art_code_seq
+		WHERE
+		    (
+		        w.buy_writer_order_status='결제 완료' 
+		        OR 
+		        w.buy_writer_order_status='배송 완료'
+		    )
+		    <if test="filtDate == '월별'">
+			    AND 
+			    TRUNC(o.order_date, 'year') = TRUNC(sysdate, 'year')
+		    </if>
+		    <if test="filtDate == '일별'">
+			    AND 
+			    TRUNC(o.order_date, 'month') = TRUNC(sysdate, 'month')
+		    </if>
+		    <if test="filtCategory != '모든 상품'">
+			    AND
+			    art.art_category=#{filtCategory}
+		    </if>
+		ORDER BY o.order_date ASC
+	</select>
+
+</mapper>

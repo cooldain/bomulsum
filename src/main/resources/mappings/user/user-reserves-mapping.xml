@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="userReservesDAO">
+	<!-- 적립금 이용내역 -->
+	<select id="selectReserves" parameterType="String" resultType="UserReservesVO">
+		SELECT 
+			point_seq, 
+			member_code_seq, 
+			point_amount,
+			point_category, 
+			point_detail, 
+			point_date
+		FROM 
+			point_tb
+		WHERE 
+			member_code_seq = #{member}
+				AND 
+			TRUNC(point_date) > TRUNC(SYSDATE - 365)
+		ORDER BY point_date DESC
+	</select>
+	
+	<!-- 사용한 적립금 -->
+	<select id="selectUseReserves" parameterType="String" resultType="int">
+		SELECT 
+			nvl(SUM(point_amount),0)
+		FROM 
+			point_tb
+		WHERE
+			point_category in ('사용')
+				AND 
+			TRUNC(point_date) > TRUNC(SYSDATE - 365)
+				AND 
+			member_code_seq = #{member}
+	</select>
+	
+	<!-- 환불된 적립금 -->
+	<select id="selectRefundReserves" parameterType="String" resultType="int">
+		SELECT 
+			nvl(SUM(point_amount),0)
+		FROM 
+			point_tb
+		WHERE
+			point_category in ('환불')
+				AND 
+			TRUNC(point_date) > TRUNC(SYSDATE - 365)
+				AND 
+			member_code_seq = #{member}
+	</select>
+
+	<!-- 총 적립된 적립금 -->
+	<select id="selectSumReserves" parameterType="String" resultType="int">
+		SELECT 
+			nvl(SUM(point_amount),0)
+		FROM 
+			point_tb	
+		WHERE 
+			point_category in ('적립')
+				AND 
+			TRUNC(point_date) > TRUNC(SYSDATE - 365)
+				AND 
+			member_code_seq = #{member}
+	</select>	
+
+</mapper>

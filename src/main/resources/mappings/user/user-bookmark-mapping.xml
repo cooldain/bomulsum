@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="userBookmarkDAO">
+
+	<resultMap
+		type="com.web.bomulsum.user.article.repository.UserArticleCategoryVO"
+		id="bookmarkVO">
+		<result property="artCode" column="art_code_seq" />
+		<result property="writerCode" column="writer_code_seq" />
+		<result property="writerName" column="writer_name" />
+		<result property="writerBrandName" column="writer_brand_name" />
+		<result property="writerSendPrice" column="writer_send_price" />
+		<result property="artPhoto" column="art_photo" />
+		<result property="artCategory" column="art_category" />
+		<result property="artName" column="art_name" />
+		<result property="artPrice" column="art_price" />
+		<result property="artDiscount" column="art_discount" />
+		<result property="artViewcount" column="art_viewcount" />
+		<result property="artKeyword" column="art_keyword" />
+		<result property="artRegisterDate" column="art_register_date"/>
+	</resultMap>
+	
+	<resultMap type="com.web.bomulsum.user.midas.repository.UserMidasVO" id="userMidasVO">
+		<result column="midas_code_seq" property="midasCodeSeq" />
+		<result column="writer_code_seq" property="writerCodeSeq" />
+		<result column="midas_img" property="midasImg" />
+		<result column="midas_name" property="midasName" />
+		<result column="midas_price" property="midasPrice" />
+		<result column="midas_discount" property="midasDiscount" />
+		<result column="midas_max" property="midasMax" />
+		<result column="midas_start_date" property="midasStartDate" />
+		<result column="midas_end_date" property="midasEndDate" />
+		<result column="midas_about" property="midasAbout" />
+		<result column="midas_category" property="midasCategory" />
+		<result column="midas_balance" property="midasBalance" />
+		<result column="midas_address1" property="midasAddress1" />
+		<result column="midas_address2" property="midasAddress2" />
+		<result column="midas_keyword" property="midasKeyword" />
+		<result column="midas_run" property="midasRun" />
+	</resultMap>
+
+	<sql id="header">
+		SELECT T.*
+		FROM (
+		SELECT ROWNUM AS RNUM, A.*
+		FROM (
+	</sql>
+	<sql id="footer">
+		) A ) T
+		WHERE T.RNUM BETWEEN #{startNum} AND #{endNum}
+	</sql>
+
+
+<!-- 	북마크 작품 -->
+	<select id="bookmarkArticle" parameterType="com.web.bomulsum.user.bookmark.repository.UserBookmarkVO" resultMap="bookmarkVO">
+		<include refid="header"/>
+		
+		SELECT 
+ 			a.art_code_seq,
+			a.writer_code_seq,
+			r.writer_name,
+			r.writer_brand_name,
+			r.writer_send_price,
+			a.art_photo,
+			a.art_category,
+			a.art_name,
+			a.art_price,
+			a.art_discount,
+			a.art_viewcount,
+			a.art_keyword,
+			a.art_register_date
+		
+		FROM 
+			art_tb a,wishlist_tb w, writer_tb r
+			
+		WHERE
+			a.writer_code_seq = r.writer_code_seq
+		AND
+			a.art_code_seq = w.wishlist_option_code
+		AND
+			w.wishlist_option = '좋아하는작품'
+		AND
+			w.member_code_seq = #{memberCode}
+			
+		ORDER BY 
+			w.wishlist_time DESC
+			
+			
+		<include refid="footer"/>
+	</select>
+	
+	<select id="bookmarkArticleCount" 
+		parameterType="com.web.bomulsum.user.bookmark.repository.UserBookmarkVO" resultType="int">
+		
+		SELECT count(*) 
+		
+		FROM 
+			art_tb a,wishlist_tb w, writer_tb r
+			
+		WHERE
+			a.writer_code_seq = r.writer_code_seq
+		AND
+			a.art_code_seq = w.wishlist_option_code
+		AND
+			w.wishlist_option = '좋아하는작품'
+		AND
+			w.member_code_seq = #{memberCode}
+	</select>
+	
+	
+	<!-- 북마크 - 오프라인클래스 -->
+	<select id="bookmarkOffline" parameterType="com.web.bomulsum.user.bookmark.repository.UserBookmarkVO" resultMap="userMidasVO">
+		<include refid="header" />
+		SELECT 
+			m.midas_code_seq,
+			m.midas_name,
+			m.midas_img,
+			m.midas_category,
+			m.midas_address1,
+			m.midas_address2,
+			m.midas_run,
+			m.midas_regdate
+			
+		FROM 
+			midas_tb m, wishlist_tb w
+			
+		WHERE 
+			m.midas_code_seq = w.wishlist_option_code
+		AND
+			w.wishlist_option = '즐겨찾는클래스'
+		AND
+			w.member_code_seq = #{memberCode}
+		AND
+			m.midas_run='Y'
+		ORDER BY
+			w.wishlist_time DESC
+		<include refid="footer" />
+	</select>
+	
+	<select id="bookmarkOfflineCount" resultType="int">
+		SELECT COUNT(*)
+		FROM 
+			midas_tb m, wishlist_tb w
+		WHERE 
+			m.midas_code_seq = w.wishlist_option_code
+		AND
+			w.wishlist_option = '즐겨찾는클래스'
+		AND
+			w.member_code_seq = #{memberCode}
+		AND
+			m.midas_run='Y'
+	</select>
+
+</mapper>

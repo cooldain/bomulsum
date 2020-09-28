@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="userWhomeDAO">
+
+	<resultMap type="UserWHomeVO" id="dndudMap">
+		<result column="art_code_seq" property="art_code_seq"/>
+		<result column="writer_code_seq" property="writer_code_seq"/>
+		<result column="art_photo" property="art_photo"/>
+		<result column="art_name" property="art_name"/>
+		<result column="art_price" property="art_price"/>
+		<result column="art_discount" property="art_discount"/>
+		<result column="art_category" property="art_category"/>
+		<result column="art_sale_state" property="art_sale_state"/>
+		<result column="writer_profile_img" property="writer_profile_img"/>
+		<result column="writer_brand_name" property="writer_brand_name"/>
+		<result column="writer_url" property="writer_url"/>
+		<result column="writer_intro" property="writer_intro"/>
+	</resultMap>
+
+	<!-- 작가URL로 작가 SEQ 검색 -->
+	<select id="getWriterFromUrl" parameterType="String" resultType="String">
+		SELECT writer_code_seq 
+		
+		FROM writer_tb 
+		
+		WHERE writer_url = #{url_id}
+	</select>
+	
+	
+	
+	<!-- 작가 정보 및 작품정보 -->
+	<select id="getWriterSalesArt" parameterType="String" resultMap="dndudMap">
+		SELECT * 
+		
+		FROM art_tb , writer_tb 
+		
+		WHERE art_tb.writer_code_seq = writer_tb .writer_code_seq
+		AND
+		art_sale_state = 'Y'
+		AND
+		art_tb.writer_code_seq = #{writerCode}		
+	</select>
+	
+	<select id="getReviewSelect" parameterType="String" resultType="int">
+		SELECT
+			review_star
+		FROM
+			review_tb
+		WHERE
+			art_code_seq=#{artCode}
+	</select>
+	
+	
+	<!-- 작가정보 : 브랜드네임(없을시 작가이름)-->
+	<select id="getBrandName" parameterType="String" resultType="String">
+		SELECT NVL(writer_brand_name, writer_name)
+		
+		FROM writer_tb
+		
+		WHERE writer_code_seq = #{writerCode}
+	</select>
+
+	<!-- 작가정보: 작가소개-->
+	<select id="getArtistItro" parameterType="String" resultType="String">
+		SELECT NVL(writer_intro,'안녕하세요.')
+		
+		FROM writer_tb
+		
+		WHERE writer_code_seq = #{writerCode}
+	</select>
+	
+	<!-- 작가정보: 작가프로필이미지-->
+	<select id="getArtistProfileImg" parameterType="String" resultType="String">
+		SELECT NVL(writer_profile_img,'test.png')
+		
+		FROM writer_tb
+		
+		WHERE writer_code_seq = #{writerCode}
+	</select>	
+	
+	
+	
+	<!-- 작가 판매중인 작품수 -->
+	<select id="getSalesArtCount" parameterType="String" resultType="int">
+		SELECT count(art_tb.art_name)
+		
+		FROM art_tb , writer_tb 
+		
+		WHERE art_tb.writer_code_seq = writer_tb.writer_code_seq
+		AND
+		art_sale_state = 'Y'
+		AND
+		art_tb.writer_code_seq =  #{writerCode}	
+	</select>
+	
+	
+	
+	<!-- 작가 구매후기 개수 -->
+	<select id="getReviewTotal" parameterType="String" resultType="int">
+		SELECT count(*) 
+		
+		FROM review_tb, art_tb
+		
+		WHERE art_tb.art_code_seq = review_tb.art_code_seq
+		AND
+		art_tb.writer_code_seq =  #{writerCode}	
+	</select>	
+	
+	
+	
+	<!-- 좋아하는 작가로 추가된 개수 -->
+	<select id="getAddLikes" parameterType="String" resultType="int">
+		SELECT COUNT(*) 
+		
+		FROM wishlist_tb
+		
+		WHERE wishlist_option_code = #{writerCode}	
+	<!-- wishlist_option_code = 작가코드 -->
+	</select>
+
+	
+	<!-- 좋아하는 작품 -->
+	<select id="getLikeArt" parameterType="hashMap" resultType="String">
+		SELECT w.wishlist_option_code
+		
+		FROM wishlist_tb w, art_tb a
+		
+		WHERE
+		w.wishlist_option_code = a.art_code_seq
+		AND
+		w.member_code_seq = #{member}
+		AND
+		a.writer_code_seq = #{writerCode}
+	</select>
+	
+	<!-- 좋아하는 작가 -->
+	<select id="likeArtistCheck" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*) 
+		
+		FROM wishlist_tb
+		
+		WHERE 
+		member_code_seq = #{member}
+		AND 
+		wishlist_option_code = #{writerCode}
+	</select>
+</mapper>
