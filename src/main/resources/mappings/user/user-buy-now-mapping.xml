@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="userBuyNowDAO">
+	<select id="selectCon" parameterType="String" resultType="UserBuyNowVO">
+		SELECT 
+			w.writer_brand_name, w.writer_send_price, w.writer_sendfree_case, 
+			w.writer_name, a.art_photo, a.art_name, a.art_discount 
+		FROM 
+			writer_tb w, art_tb a
+		WHERE 
+			a.writer_code_seq=w.writer_code_seq
+        AND
+            a.art_code_seq=#{artCode}
+	</select>
+	
+	<select id="selectOption" parameterType="String" resultType="UserBuyNowVO">
+		SELECT 
+			art_option_seq, art_option_category, art_option_name, art_option_price
+		FROM 
+			art_option_tb
+		WHERE 
+			art_option_seq =#{artOption}
+	</select>
+	
+	<select id="selectBuyCon" parameterType="hashmap" resultType="UserPaymentVO">
+		SELECT 
+			w.writer_brand_name, w.writer_send_price, w.writer_sendfree_case, w.writer_plus_price,
+			w.writer_code_seq, a.art_code_seq, a.art_photo, a.art_name, a. art_price, 
+			a.art_discount, a.art_point 
+		FROM 
+			writer_tb w, art_tb a
+		WHERE 
+			a.writer_code_seq=w.writer_code_seq
+        AND
+            a.art_code_seq=#{artCode}
+	</select>
+	
+	
+</mapper>

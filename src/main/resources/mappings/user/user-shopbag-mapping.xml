@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="userShopbagDAO">
+
+	<select id="selectCartCon" parameterType="String" resultType="UserShopbagVO">
+		SELECT 
+			c.cart_seq, c.art_code_seq, c.member_code_seq, c.art_option_seq, c.art_count, c.order_request,
+			w.writer_brand_name, w.writer_send_price, w.writer_sendfree_case, w.writer_name,
+			a.art_photo, a.art_name, a.art_price, a.art_discount 
+		FROM 
+			cart_tb c, writer_tb w, art_tb a
+		WHERE 
+			c.art_code_seq=a.art_code_seq
+		AND
+			a.writer_code_seq=w.writer_code_seq
+		AND
+			c.member_code_seq=#{memberCode}
+		ORDER BY 
+			cart_seq
+	</select>
+	
+	<select id="selectOption" parameterType="String" resultType="UserShopbagOptionVO">
+		SELECT 
+			art_option_seq, art_option_category, art_option_name, art_option_price
+		FROM 
+			art_option_tb
+		WHERE 
+			art_option_seq =#{artOption}
+	</select>
+	
+	<!-- 모달에서의 기본 옵션 -->	
+	<select id="selectArtOption" parameterType="String" resultType="String">
+		SELECT 
+			art_option_seq
+		FROM 
+			cart_tb
+		WHERE 
+			cart_seq=#{cartCode}
+	</select>
+	
+	<!-- 모달에서 선택한 옵션 목록 가져오기 -->
+	 <select id="selectedListOption" parameterType="java.util.ArrayList" resultType="UserShopbagOptionVO">
+		SELECT 
+			art_option_seq, art_option_category, art_option_name, art_option_price
+		FROM 
+			art_option_tb
+		WHERE 
+			art_option_seq in
+	     <foreach collection="list" item="item" open="(" close=")" separator=",">
+	     	#{item}
+	     </foreach>
+	</select>
+	
+	<!-- 작품 카운트 -->
+	<select id="selectArtCount" parameterType="String" resultType="String">
+		SELECT 
+			art_count
+		FROM 
+			cart_tb
+		WHERE 
+			cart_seq =#{cartCode}
+	</select>
+	
+	<select id="selectmodalCon" resultType="UserShopbagModalVO">
+		SELECT 
+			c.cart_seq, c.art_code_seq, c.art_option_seq, a.art_name, 
+			a.art_photo, a.art_discount, a.art_price
+		FROM 
+			art_tb a, cart_tb c
+		WHERE 
+			c.art_code_seq = a.art_code_seq 
+		AND 
+			c.cart_seq=#{cart}
+	</select>
+	
+	<select id="selectModalOption" resultType="UserShopbagOptionVO">
+		SELECT 
+			art_option_seq, art_option_category, art_option_name, art_option_price
+		FROM 
+			art_option_tb
+		WHERE 
+			art_code_seq =#{art}
+		ORDER BY
+			art_option_seq
+	</select>
+	
+	
+	<update id="updateOrderRequest" parameterType="hashmap">
+		UPDATE
+			cart_tb
+		SET 
+			order_request=#{request}
+		WHERE 
+			cart_seq=#{cart}
+	</update>
+	
+	<update id="updateArtCount" parameterType="hashmap">
+		UPDATE
+			cart_tb
+		SET 
+			art_count=#{count}
+		WHERE 
+			cart_seq=#{cart}
+	</update>
+	
+ 	<delete id="deleteArt" parameterType="String">
+		DELETE
+			cart_tb
+		WHERE 
+			cart_seq=#{cartCode}
+	</delete>
+	
+	 <!-- 작품 삭제 -->
+    <delete id="deleteChoice" parameterType="java.util.ArrayList">
+	     DELETE
+	    	cart_tb
+       	WHERE
+        	cart_seq
+        IN
+	     <foreach collection="list" item="item" open="(" close=")" separator=",">
+	     	#{item}
+	     </foreach>
+    </delete>
+    
+	<update id="updateArtOption" parameterType="hashmap">
+		UPDATE
+			cart_tb
+		SET 
+			art_option_seq=#{option},
+			art_count=#{count}
+		WHERE 
+			cart_seq=#{cart}
+	</update>
+	
+	<!-- 장바구니 카운트 -->
+	<select id="shopbagCount" parameterType="String" resultType="String">
+		SELECT 
+			count(*)
+		FROM 
+			cart_tb
+		WHERE 
+			member_code_seq =#{member}
+	</select>
+	
+	
+
+</mapper>

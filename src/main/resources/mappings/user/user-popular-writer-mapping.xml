@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="userPopularWriterDAO">
+
+	<!-- 작가 정보 -->
+	<select id="selectPopularArtDetail" resultType="UserPopularWriterVO">
+		SELECT 
+			w.writer_code_seq, w.writer_profile_img,w.writer_brand_name,w.writer_intro, 
+			w.writer_url, w.writer_name, w.writer_cover_img, s.wishlist_option_code
+		FROM 
+			writer_tb w, wishlist_tb s
+		WHERE 
+			s.wishlist_option='좋아하는작가' 
+		AND 
+			w.writer_code_seq = s.wishlist_option_code 
+		GROUP BY 
+			w.writer_code_seq, w.writer_profile_img,w.writer_brand_name,w.writer_intro, w.writer_url, 
+			w.writer_name, w.writer_cover_img, s.wishlist_option_code
+		ORDER BY 
+			ROW_NUMBER() OVER(ORDER BY (COUNT(s.wishlist_option_code)) DESC)
+	
+	</select>
+	
+	<!-- 인기있는 작가별 사진 -->
+ 	<select id="selectArtPhoto" parameterType="String" resultType="String">
+		SELECT art_photo
+		FROM 
+			art_tb
+		WHERE writer_code_seq =	#{item}
+	</select> 
+	
+	<!-- 좋아하는 작가인지 확인 인기작가-->
+	<select id="getLikeWriter" parameterType="hashmap" resultType="String">
+		SELECT wishlist_option_code
+		FROM 
+			wishlist_tb 
+		WHERE 
+			member_code_seq=#{memberCode} 
+		AND 
+			wishlist_option='좋아하는작가'
+		AND 
+			wishlist_option_code in(#{writerCode1}, #{writerCode2},#{writerCode3},#{writerCode4},#{writerCode5})
+	</select>
+	
+	<!-- 좋아하는 작가인지 확인  한 명씩-->
+	<select id="islikeWriter" parameterType="String" resultType="String">
+		SELECT wishlist_option_code
+		FROM 
+			wishlist_tb 
+		WHERE 
+			member_code_seq=#{member} 
+		AND 
+			wishlist_option='좋아하는작가'
+	</select>
+	
+	
+
+	
+	<!-- 좋아하는 작가 추가 -->
+	<insert id="likeWriter" parameterType="hashMap">
+		INSERT INTO wishlist_tb
+		(
+			wishlist_seq,
+			member_code_seq,
+			wishlist_option,
+			wishlist_option_code,
+			wishlist_time
+		)
+		VALUES
+		(
+			'wishlist_seq' || TO_CHAR(wishlist_sq.nextval),
+			#{member},
+			#{option},
+			#{optionCode},
+			sysdate
+		)
+	</insert>
+	<!-- 좋아하는 작가 취소 -->
+	<delete id="nonLikeWriter" parameterType="hashMap">
+		DELETE FROM
+			wishlist_tb
+		WHERE
+			member_code_seq = #{member}
+		AND
+			wishlist_option = #{option}
+		AND
+			wishlist_option_code = #{optionCode}
+	</delete>
+	
+
+</mapper>

@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="writerMessageDAO">
+	
+	<resultMap type="com.web.bomulsum.writer.message.repository.WriterChatroomVO" id="writerChatVo">
+		<result property="memberCode" column="member_code_seq" />
+		<result property="memberName" column="member_name" />
+		<result property="memberImg" column="member_profile" />
+		<result property="chatroomCode" column="chatroom_sq" />
+	</resultMap>
+	
+	<resultMap type="com.web.bomulsum.writer.message.repository.MessageVO" id="messageVO">
+		<result property="messageSeq" column="message_seq" />
+		<result property="messageSenderCode" column="message_sender_code" />
+		<result property="messageReceiverCode" column="message_receiver_code" />
+		<result property="messageContent" column="message_content" />
+	</resultMap>
+	
+	<select id="getChatroomCode" parameterType="hashMap" resultType="String">
+		SELECT
+			chatroom_sq
+		FROM
+			chatroom_tb
+		WHERE
+		(
+			(
+				member_code_seq=#{sender}
+				AND
+				writer_code_seq=#{receiver}
+			)
+			OR
+			(
+				member_code_seq=#{receiver}
+				AND
+				writer_code_seq=#{sender}
+			)
+		)
+	</select>
+	
+	<select id="getChatroom" parameterType="String" resultMap="writerChatVo">
+		SELECT 
+			m.member_code_seq, 
+			m.member_name,
+			m.member_profile,
+			c.chatroom_sq
+		FROM 
+			member_tb m
+		INNER JOIN 
+			(chatroom_tb c)
+		ON 
+			m.member_code_seq = c.member_code_seq
+		WHERE 
+			(
+				c.writer_code_seq = #{writerCode}
+				AND
+				c.chatroom_in_writer = 'Y'
+			)
+		ORDER BY 
+			c.chatroom_date
+	</select>
+	
+	<select id="getNonReadMsg" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*) FROM
+			message_tb
+		WHERE
+			chatroom_sq=#{chatroomCode}
+			AND
+			message_read='N'
+			AND
+			message_receiver_code=#{receiver}
+	</select>
+	
+	<select id="getNonReadMsgContent" parameterType="hashMap" resultType="String">
+		SELECT
+			message_content
+		FROM
+		(
+			SELECT 
+				message_content
+			FROM 
+				message_tb
+			WHERE
+			(
+				message_receiver_code=#{writerCode}
+				AND
+				chatroom_sq=#{chatRoomCode}
+			)
+			OR
+			(
+				message_sender_code=#{writerCode}
+				AND
+				chatroom_sq=#{chatRoomCode}
+			)
+			ORDER BY
+				message_time desc
+		)
+		WHERE rownum=1
+	</select>
+	
+	<select id="memberTest" resultMap="writerChatVo">
+		SELECT
+			member_code_seq,
+			member_name,
+			member_profile
+		FROM
+			member_tb
+	</select>
+	
+	<select id="insertChatRoomBefore" parameterType="com.web.bomulsum.user.message.repository.UserInsertChatVo"
+		resultType="String">
+		SELECT
+			chatroom_in_writer
+		FROM
+			chatroom_tb
+		WHERE
+			(
+				member_code_seq=#{memberCode}
+				AND
+				writer_code_seq=#{writerCode}
+			)
+	</select>
+	
+	<update id="updateChatRoom" parameterType="com.web.bomulsum.user.message.repository.UserInsertChatVo">
+		UPDATE
+			chatroom_tb
+		SET
+			chatroom_in_writer='Y'
+		WHERE
+			(
+				member_code_seq=#{memberCode}
+				AND
+				writer_code_seq=#{writerCode}
+			)
+	</update>
+	
+	<insert id="insertChatRoom" parameterType="com.web.bomulsum.user.message.repository.UserInsertChatVo">
+		INSERT INTO
+		chatroom_tb
+		(
+			chatroom_sq,
+			member_code_seq,
+			writer_code_seq,
+			chatroom_in_writer
+		)
+		VALUES
+		(
+			'chatroom_sq' || TO_CHAR(chatroom_sq.nextval), 
+			#{memberCode}, 
+			#{writerCode},
+			'Y'
+		)
+	</insert>
+	
+	<update id="delChatRoom" parameterType="java.util.List">
+		
+		UPDATE
+			chatroom_tb 
+		SET
+			chatroom_in_writer='N'
+		<where>
+			<foreach collection="list" item="item" open="" close="" separator="OR">
+				(
+					member_code_seq=#{item.memberCode} 
+				AND 
+					writer_code_seq=#{item.writerCode}
+				)
+			</foreach>
+		</where>
+	</update>
+	
+	<update id="sendMessageBefore" parameterType="com.web.bomulsum.writer.message.repository.WriterSendMessageVO">
+		UPDATE
+			chatroom_tb
+		SET
+			chatroom_in_member='Y',
+			chatroom_in_writer='Y'
+		WHERE
+		(
+			(
+				member_code_seq=#{messageSenderCode}
+				AND
+				writer_code_seq=#{messageReceiverCode}
+			)
+			OR
+			(
+				member_code_seq=#{messageReceiverCode}
+				AND
+				writer_code_seq=#{messageSenderCode}
+			)
+		)
+	</update>
+	
+	<insert id="sendMessage" parameterType="com.web.bomulsum.writer.message.repository.WriterSendMessageVO">
+		INSERT INTO
+			message_tb
+		(
+			message_seq,
+			chatroom_sq,
+			message_sender_code,
+			message_receiver_code,
+			message_content
+		)
+		VALUES
+		(
+			'message_sq' || TO_CHAR(message_sq.nextval),
+			#{chatroomCode},
+			#{messageSenderCode},
+			#{messageReceiverCode},
+			#{messageContent}
+		)
+	</insert>
+	
+	<select id="getChatList" parameterType="hashMap" resultMap="messageVO">
+		SELECT 
+			message_seq,
+			message_sender_code,
+			message_receiver_code,
+			message_content
+		FROM
+			message_tb
+		WHERE
+			(
+				message_sender_code=#{sender}
+				AND
+				message_receiver_code=#{receiver}
+			)
+			OR
+			(
+		        message_sender_code=#{receiver}
+		        AND
+		        message_receiver_code=#{sender}
+		    )
+		ORDER BY message_time
+	</select>
+	
+	<update id="updateChatStatus" parameterType="hashMap">
+		UPDATE
+			message_tb
+		SET
+			message_read='Y'
+		WHERE
+		(
+			message_sender_code=#{sender}
+			AND
+			message_receiver_code=#{receiver}
+		)
+	</update>
+
+</mapper>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="writerSalesPolicyDAO">
+	<resultMap id="salesPolicyMap" type="com.web.bomulsum.writer.salespolicy.repository.WriterSalesPolicyVO">
+		<result property="writerPayment" column="writer_payment"/>
+		<result property="writerSendPrice" column="writer_send_price"/>
+		<result property="writerPlusPrice" column="writer_plus_price"/>
+		<result property="writerSendfreeCase" column="writer_sendfree_case"/>
+		<result property="writerRefund" column="writer_refund"/>
+		<result property="writerPolicyAbout" column="writer_policy_about"/>
+		<result property="writerCodeSeq" column="writer_code_seq"/>
+	</resultMap>	
+	
+	
+	<!-- 작가 판매정책 등록(수정) -->
+	<update id="updateSalesPolicy" parameterType="WriterSalesPolicyVO">
+		UPDATE writer_tb 
+		SET 
+		writer_payment = #{writerPayment} , writer_send_price= #{writerSendPrice}, 
+		writer_plus_price = #{writerPlusPrice}, writer_sendfree_case= #{writerSendfreeCase},
+		writer_refund = #{writerRefund}, writer_policy_about= #{writerPolicyAbout} 
+		WHERE 
+		writer_code_seq = #{writerCodeSeq}
+	</update>
+	
+	
+	<!-- 작가 판매정책 불러오기 -->
+	<select id="loadSalesPolicy"  resultMap = "salesPolicyMap" parameterType="String">
+		SELECT 
+		writer_payment, writer_send_price, writer_plus_price, 
+		writer_sendfree_case, writer_refund,writer_policy_about
+		FROM 
+		writer_tb 
+		WHERE 
+		writer_code_seq = #{writerCodeSeq}
+	</select>
+</mapper> 

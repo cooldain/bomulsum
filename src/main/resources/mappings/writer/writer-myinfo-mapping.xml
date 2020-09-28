@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="writerMyinfoDAO">
+
+	<resultMap id="myinfoMap" type="com.web.bomulsum.writer.myinfo.repository.WriterMyinfoVO">
+		<result column="writer_brand_name" property="writerBrandName"/>
+		<result column="writer_email" property="writerEmail"/>
+		<result column="writer_phone" property="writerPhone"/>
+		<result column="writer_url" property="writerUrl"/>
+		<result column="writer_honor_name" property="writerHonorName"/>
+		<result column="writer_honor_num" property="writerHonorNum"/>
+		<result column="writer_about_dispatch" property="writerAboutDispatch"/>
+		<result column="writer_honor_account" property="writerHonorAccount"/>
+	</resultMap>
+	
+	<select id="loadMyinfo" resultMap = "myinfoMap" parameterType="String">
+		SELECT 
+		writer_brand_name, writer_email, writer_phone, writer_url,
+		writer_honor_name, writer_honor_num, writer_about_dispatch, writer_honor_account
+		FROM 
+		writer_tb 
+		WHERE 
+		writer_code_seq = #{writerCodeSeq}
+	</select>
+	
+	<update id="insertPhone" parameterType="hashMap">
+		UPDATE writer_tb
+		SET
+		writer_phone = #{writerPhone}
+		WHERE
+		writer_code_seq = #{writerCodeSeq} <!-- 작가코드 받아오기 -->
+	</update>
+	
+	<update id="insertUrl" parameterType="hashMap">
+		UPDATE writer_tb
+		SET
+		writer_url = #{writerUrl}
+		WHERE
+		writer_code_seq = #{writerCodeSeq} <!-- 작가코드 받아오기 -->
+	</update>
+
+
+</mapper>

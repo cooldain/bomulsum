@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.web.bomulsum.writer.midas.repository.WriterMidasDAO">
+	<sql id="search">
+		<!-- 동적 SQL구문 -->
+		<if test="condition == 'midas_name'">
+		AND midas_name  LIKE ('%' || #{keyword} || '%') 
+		</if>
+		
+	</sql>
+
+	<select id="selectWriterCode"
+		parameterType="com.web.bomulsum.writer.login.repository.WriterRegisterVO">
+		SELECT
+			writer_code_seq
+		FROM
+			writer_tb
+		WHERE
+			writer_email=#{writerEmail};
+	</select>
+	
+	<insert id="midasRegister" 
+	parameterType="com.web.bomulsum.writer.midas.repository.WriterMidasVO">
+		INSERT INTO 
+			midas_tb 	
+		VALUES
+		(
+			'midas_code_seq'||TO_CHAR(midas_code_sq.nextval),
+			#{writerCodeSeq },
+			#{orderImg},
+			#{midasName},
+			#{midasPrice},
+			#{midasDiscount},
+			#{maxNumber},
+			#{startDate},
+			#{endDate},
+			#{day},
+			#{startTime},
+			#{endTime},
+			#{about},
+			#{category},
+			#{balance},
+			#{address1},
+			#{address2},
+			#{keyword},
+			'Y',
+			sysdate
+		)
+	</insert>
+	
+	<select id="getClassAllSelect" parameterType="com.web.bomulsum.writer.midas.repository.WriterMidasVO" resultMap="midasVO">
+		SELECT 
+			* 
+		FROM 
+			midas_tb 
+		WHERE 
+			writer_code_seq=#{writerCodeSeq }
+		
+	</select>
+	
+	<select id="getClassArticle" parameterType="com.web.bomulsum.writer.midas.repository.WriterMidasVO" resultMap="midasVO">
+		SELECT
+			*
+		FROM
+			midas_tb
+		WHERE
+			midas_code_seq= #{orderSeq}
+	</select>
+	<update id="midasModify" parameterType="com.web.bomulsum.writer.midas.repository.WriterMidasVO">
+		UPDATE 
+			midas_tb 
+		SET
+			midas_img 
+				= #{orderImg},
+			midas_name 
+				= #{midasName},
+			midas_price 
+				= #{midasPrice},
+			midas_discount 
+				= #{midasDiscount},
+			midas_max 
+				= #{maxNumber},
+			midas_start_date 
+				= #{startDate},
+			midas_end_date 
+				= #{endDate},
+			midas_day 
+				= #{day},
+			midas_start_time 
+				= #{startTime},
+			midas_end_time 
+				= #{endTime},
+			midas_about 
+				= #{about},
+			midas_category 
+				= #{category},
+			midas_balance 
+				= #{balance},
+			midas_address1 
+				= #{address1},
+			midas_address2 
+				= #{address2}, 
+			midas_keyword 
+				= #{keyword}
+		WHERE 
+			midas_code_seq=#{orderSeq}
+	</update>
+	<delete id="midasDelete" parameterType="com.web.bomulsum.writer.midas.repository.WriterMidasVO">
+		DELETE FROM midas_tb WHERE 
+			midas_code_seq=#{orderSeq}
+	</delete>
+	<update id="midasRunUpdate">
+		UPDATE midas_tb SET midas_run=#{run} WHERE 
+			midas_code_seq=#{orderSeq}
+	</update>
+
+	<resultMap type="com.web.bomulsum.writer.midas.repository.WriterMidasVO" id="midasVO">
+		<result column="midas_code_seq" property="orderSeq"/>
+		<result column="writer_code_seq" property="writerCodeSeq"/>
+		<result column="midas_img" property="orderImg"/>
+		<result column="midas_name" property="midasName"/>
+		<result column="midas_price" property="midasPrice"/>
+		<result column="midas_discount" property="midasDiscount"/>
+		<result column="midas_max" property="maxNumber"/>
+		<result column="midas_start_date" property="startDate"/>
+		<result column="midas_end_date" property="endDate"/>
+		<result column="midas_day" property="day"/>
+		<result column="midas_start_time" property="startTime"/>
+		<result column="midas_end_time" property="endTime"/>
+		<result column="midas_about" property="about"/>
+		<result column="midas_category" property="category"/>
+		<result column="midas_balance" property="balance"/>
+		<result column="midas_address1" property="address1"/>
+		<result column="midas_address2" property="address2"/>
+		<result column="midas_keyword" property="keyword"/>
+		<result column="midas_run" property="run"/>
+		<result column="midas_regdate" property="regDate"/>
+	</resultMap>
+	
+	<select id="countArticles" resultType="int">
+		SELECT 
+			COUNT(*) 
+		FROM 
+			midas_tb 
+		WHERE 
+			writer_code_seq=#{writerCodeSeq}
+		<include refid="search" />
+	</select>
+	<select id="getArticleListPaging" resultMap="midasVO">
+		SELECT 
+			*
+		FROM(
+			SELECT 
+				ROWNUM rnum, A.
+					*
+				FROM(
+					SELECT 
+						* 
+					FROM 
+						midas_tb 
+        			WHERE 
+        				writer_code_seq=#{writerCodeSeq} 
+        				<include refid="search" />
+        		
+        			<if test="condition == 'midasName'">
+						ORDER by convert (midas_name,'ISO2022-KR')
+					</if>
+					<if test="condition == 'midasPrice'">
+						ORDER by 
+     						midas_price desc
+					</if>
+					<if test="condition == 'midasDiscount'">
+						ORDER by 
+     						midas_discount desc
+					</if>
+					<if test="condition == 'regDate'">
+						ORDER by 
+     						midas_regdate desc
+					</if>
+					<if test="condition == null and condition == 'midas_name'">
+        			ORDER 
+        				BY midas_code_seq desc
+					</if>
+					
+        			)
+        		A
+        	)
+		WHERE 
+			rnum between #{pageStart} and #{pageNext}
+	</select>
+
+	
+	
+
+</mapper>

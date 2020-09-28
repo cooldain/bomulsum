@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="recentlyDao">
+
+	<resultMap type="com.web.bomulsum.user.recently.repository.UserRecentylWatchVo" id="getInfo">
+		<result property="artCode" column="art_code_seq" />
+		<result property="artImg" column="art_photo" />
+		<result property="writerName" column="writer_name" />
+		<result property="writerBrandName" column="writer_brand_name" />
+		<result property="artName" column="art_name" />
+		<result property="artPrice" column="art_price" />
+		<result property="artDiscount" column="art_discount" />
+	</resultMap>
+	
+	<resultMap type="com.web.bomulsum.user.recently.repository.UserRecentylWatchReviewVo" id="getReview">
+		<result property="reviewStar" column="review_star" />
+		<result property="reviewComment" column="review_comment" />
+	</resultMap>
+	
+	<select id="getArticleCode" parameterType="String" resultType="String">
+		SELECT
+			wishlist_option_code
+		FROM
+			wishlist_tb
+		WHERE
+		(
+			wishlist_option='최근본작품'
+			AND
+			member_code_seq=#{member}
+		)
+		ORDER BY wishlist_time DESC
+	</select>
+	
+	<select id="getArticleReview" parameterType="String" resultMap="getReview">
+		SELECT
+			review_comment,
+			review_star
+		FROM
+			review_tb
+		WHERE
+			art_code_seq=#{artCode}
+		ORDER BY
+			review_date DESC
+	</select>
+	
+	<select id="getArticleInfo" parameterType="String" resultMap="getInfo">
+		SELECT
+			a.art_code_seq,
+		    a.art_photo,
+		    w.writer_name,
+		    w.writer_brand_name,
+		    a.art_name,
+		    a.art_price,
+		    a.art_discount
+		FROM
+			art_tb a
+		INNER JOIN
+			writer_tb w
+		ON
+			w.writer_code_seq = a.writer_code_seq
+		WHERE
+			a.art_code_seq=#{artCode}
+	</select>
+	
+</mapper>

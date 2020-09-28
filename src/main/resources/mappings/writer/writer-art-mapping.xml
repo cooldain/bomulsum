@@ -1,0 +1,668 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.web.bomulsum.writer.art.repository.WriterArtDAO">
+
+	<resultMap id="artList" type="com.web.bomulsum.writer.art.repository.WriterArtVO">	
+		<result property="artCodeSeq" column="art_code_seq"/>
+		<result property="writerCodeSeq" column="writer_code_seq"/>
+		<result property="artPhoto" column="art_photo"/>
+		<result property="artName" column="art_name"/>
+		<result property="artPrice" column="art_price"/>
+		<result property="artDiscount" column="art_discount"/>
+		<result property="artAmount" column="art_amount"/>
+		<result property="artDescription" column="art_description"/>
+		<result property="artCategory" column="art_category"/>
+		<result property="artKeyword" column="art_keyword"/>
+		<result property="artViewCount" column="art_viewcount"/>
+		<result property="artPoint" column="art_point"/>
+		<result property="artSaleCount" column="art_sale_count"/>
+		<result property="artSaleState" column="art_sale_state"/>
+		<result property="artRecommendTime" column="art_recommend_time"/>
+		<result property="artRegisterDate" column="art_register_date"/>
+		<result property="temp" column="art_recommend_temp"/>
+	</resultMap>
+
+	<resultMap id="artInfoList" type="com.web.bomulsum.writer.art.repository.WriterArtInfoDetailVO">	
+		<result property="artInfoDetailCodeSeq" column="art_info_detail_code"/>
+		<result property="artInfoDetailCategory" column="art_info_detail_category"/>
+		<result property="artInfoDetailWeight" column="art_info_detail_weight"/>
+		<result property="artInfoDetailFrom" column="art_info_detail_from"/>
+		<result property="artInfoDetailMaterial" column="art_info_detail_material"/>
+		<result property="artInfoDetailExpdate" column="art_info_detail_expdate"/>
+		<result property="artInfoDetailMust" column="art_info_detail_must"/>
+		<result property="artInfoDetailComponent" column="art_info_detail_component"/>
+		<result property="artInfoDetailWay" column="art_info_detail_way"/>	
+	</resultMap>
+	
+	<resultMap id="artOptionList" type="com.web.bomulsum.writer.art.repository.WriterArtOptionVO">	
+		<result property="artOptionSeq" column="art_option_seq"/>
+		<result property="artOptionCategory" column="art_option_category"/>
+		<result property="artOptionName" column="art_option_name"/>
+		<result property="artOptionPrice" column="art_option_price"/>
+	</resultMap>
+	
+
+<!-- 작품 등록 -->
+	<insert id="insertArt" parameterType="com.web.bomulsum.writer.art.repository.WriterArtVO">
+		INSERT INTO 
+		art_tb(
+			art_code_seq,
+			writer_code_seq,
+			art_photo,
+			art_name,
+			art_price,
+			art_discount,
+			art_amount,
+			art_description,
+			art_category,
+			art_keyword,
+			art_viewcount,
+			art_point,
+			art_sale_count,
+			art_sale_state,
+			art_recommend_time,
+			art_recommend_temp,
+			art_recommend_state,
+			art_register_date
+		)
+		VALUES (
+			'art_code_seq' || TO_CHAR(art_code_sq.nextval),
+			#{writerCodeSeq},
+			#{artPhoto},
+			#{artName},
+			#{artPrice},
+			#{artDiscount},
+			#{artAmount},
+			#{artDescription},
+			#{artCategory},
+			#{artKeyword},
+			default,
+			#{artPrice}*0.1,
+			default,
+			'Y',
+			default,
+			default,
+			default,
+			SYSDATE
+		)
+	</insert>
+  <!-- 작품 코드 검색 -->
+	<select id="getArtCode" parameterType="com.web.bomulsum.writer.art.repository.WriterArtVO" resultType="String">
+		SELECT art_code_seq
+		FROM art_tb
+		WHERE writer_code_seq=#{writerCodeSeq}
+		AND art_name=#{artName}	
+	</select>
+
+<!-- 작품 상세 정보 등록 -->
+	<insert id="insertArtInfoDetail" parameterType="com.web.bomulsum.writer.art.repository.WriterArtInfoDetailVO">
+	INSERT INTO 	
+		art_info_detail_tb(
+			art_info_detail_code_seq,
+    		art_code_seq,
+   	 		art_info_detail_category,
+    		art_info_detail_weight,
+    		art_info_detail_from,
+    		art_info_detail_material,
+    		art_info_detail_expdate,
+    		art_info_detail_must,
+    		art_info_detail_component,
+    		art_info_detail_way
+		)
+		VALUES (
+			'art_info_detail_code_seq' || TO_CHAR(art_info_detail_code_sq.nextval),
+			#{artCode},
+			#{artInfoDetailCategory},
+			#{artInfoDetailWeight},
+			#{artInfoDetailFrom},
+			#{artInfoDetailMaterial},
+			#{artInfoDetailExpdate},
+			#{artInfoDetailMust},
+			#{artInfoDetailComponent},
+			#{artInfoDetailWay}
+		)
+	</insert>
+
+	<!-- 카테고리 등록 -->
+	<insert id="insertArtOption1" parameterType="hashMap" >
+	INSERT INTO 	
+		art_option_tb(
+			art_option_seq,
+  			art_code_seq,
+    		art_option_category,
+    		art_option_name,
+    		art_option_price
+		)
+		VALUES (
+			'art_option_seq' || TO_CHAR(art_option_sq.nextval),
+			#{ArtCodeSeq},
+			#{OptionCategory1},
+			#{optionName1},
+			#{optionPrice1}
+		)
+	</insert>
+	<insert id="insertArtOption2" parameterType="hashMap" >
+	INSERT INTO 	
+		art_option_tb(
+			art_option_seq,
+  			art_code_seq,
+    		art_option_category,
+    		art_option_name,
+    		art_option_price
+		)
+		VALUES (
+			'art_option_seq' || TO_CHAR(art_option_sq.nextval),
+			#{ArtCodeSeq},
+			#{OptionCategory1},
+			#{optionName2},
+			#{optionPrice2}
+		)
+	</insert>
+	<insert id="insertArtOption3" parameterType="hashMap" >
+	INSERT INTO 	
+		art_option_tb(
+			art_option_seq,
+  			art_code_seq,
+    		art_option_category,
+    		art_option_name,
+    		art_option_price
+		)
+		VALUES (
+			'art_option_seq' || TO_CHAR(art_option_sq.nextval),
+			#{ArtCodeSeq},
+			#{OptionCategory1},
+			#{optionName3},
+			#{optionPrice3}
+		)
+	</insert>
+	<insert id="insertArtOption4" parameterType="hashMap" >
+	INSERT INTO 	
+		art_option_tb(
+			art_option_seq,
+  			art_code_seq,
+    		art_option_category,
+    		art_option_name,
+    		art_option_price
+		)
+		VALUES (
+			'art_option_seq' || TO_CHAR(art_option_sq.nextval),
+			#{ArtCodeSeq},
+			#{OptionCategory2},
+			#{optionName4},
+			#{optionPrice4}
+		)
+	</insert>
+	<insert id="insertArtOption5" parameterType="hashMap" >
+	INSERT INTO 	
+		art_option_tb(
+			art_option_seq,
+  			art_code_seq,
+    		art_option_category,
+    		art_option_name,
+    		art_option_price
+		)
+		VALUES (
+			'art_option_seq' || TO_CHAR(art_option_sq.nextval),
+			#{ArtCodeSeq},
+			#{OptionCategory2},
+			#{optionName5},
+			#{optionPrice5}
+		)
+	</insert>
+	<insert id="insertArtOption6" parameterType="hashMap" >
+	INSERT INTO 	
+		art_option_tb(
+			art_option_seq,
+  			art_code_seq,
+    		art_option_category,
+    		art_option_name,
+    		art_option_price
+		)
+		VALUES (
+			'art_option_seq' || TO_CHAR(art_option_sq.nextval),
+			#{ArtCodeSeq},
+			#{OptionCategory2},
+			#{optionName6},
+			#{optionPrice6}
+		)
+	</insert>
+	<insert id="insertArtOption7" parameterType="hashMap" >
+	INSERT INTO 	
+		art_option_tb(
+			art_option_seq,
+  			art_code_seq,
+    		art_option_category,
+    		art_option_name,
+    		art_option_price
+		)
+		VALUES (
+			'art_option_seq' || TO_CHAR(art_option_sq.nextval),
+			#{ArtCodeSeq},
+			#{OptionCategory3},
+			#{optionName7},
+			#{optionPrice7}
+		)
+	</insert>
+	<insert id="insertArtOption8" parameterType="hashMap" >
+	INSERT INTO 	
+		art_option_tb(
+			art_option_seq,
+  			art_code_seq,
+    		art_option_category,
+    		art_option_name,
+    		art_option_price
+		)
+		VALUES (
+			'art_option_seq' || TO_CHAR(art_option_sq.nextval),
+			#{ArtCodeSeq},
+			#{OptionCategory3},
+			#{optionName8},
+			#{optionPrice8}
+		)
+	</insert>
+	<insert id="insertArtOption9" parameterType="hashMap" >
+	INSERT INTO 	
+		art_option_tb(
+			art_option_seq,
+  			art_code_seq,
+    		art_option_category,
+    		art_option_name,
+    		art_option_price
+		)
+		VALUES (
+			'art_option_seq' || TO_CHAR(art_option_sq.nextval),
+			#{ArtCodeSeq},
+			#{OptionCategory3},
+			#{optionName9},
+			#{optionPrice9}
+		)
+	</insert>
+
+<!-- 판매중 작품목록 -->
+	<select id="getArtOnsale" parameterType="String" resultMap="artList">
+		SELECT * FROM art_tb
+		WHERE writer_code_seq=#{writerCodeSeq}
+		AND art_sale_state='Y'
+	</select>
+	
+	<!-- 판매 일시중지 작품목록 -->
+	<select id="getArtPauseOnsale" parameterType="String" resultMap="artList">
+		SELECT * FROM art_tb
+		WHERE writer_code_seq=#{writerCodeSeq}
+		AND
+		art_sale_state='N'
+	</select>	
+ 
+ <!-- 후기 카운트 -->
+	<select id="getArtSaleReview" parameterType="String" resultType="java.lang.Integer">
+		SELECT count(*) 
+		FROM review_tb 
+		WHERE art_code_seq=#{artCodeSeq}
+	</select>
+ 
+ 	<!-- 댓글 카운트 -->
+	<select id="getArtSaleComment" parameterType="String" resultType="java.lang.Integer">
+		SELECT count(*) 
+		FROM comment_tb 
+		WHERE art_code_seq=#{artCodeSeq}
+	</select>
+	<!-- 즐겨찾기 카운트 -->
+	<select id="getArtSaleBookmark" parameterType="String" resultType="java.lang.Integer">
+		SELECT count(*) 
+		FROM wishlist_tb 
+		WHERE wishlist_option='좋아하는작품' 
+		AND wishlist_option_code=#{artCodeSeq}
+	</select>
+
+ <!-- 판매일시중지 -->
+	<update id="pauseSalesArt" parameterType="java.util.ArrayList">
+	     UPDATE 
+	    	art_tb
+        SET 
+        	art_sale_state='N'
+       	WHERE
+        	art_code_seq
+        IN
+	     <foreach collection="list" item="item" open="(" close=")" separator=",">
+	     	#{item}
+	     </foreach>
+   </update>
+   
+    <!-- 판매시작 -->
+	<update id="startSalesArt" parameterType="java.util.ArrayList">
+	     UPDATE 
+	    	art_tb
+        SET 
+        	art_sale_state='Y'
+       	WHERE
+        	art_code_seq
+        IN
+	     <foreach collection="list" item="item" open="(" close=")" separator=",">
+	     	#{item}
+	     </foreach>
+   </update>
+   
+ <!-- 작품 삭제 -->
+   <delete id="deleteArt" parameterType="java.util.ArrayList">
+	     DELETE 
+	    	art_tb
+       	WHERE
+        	art_code_seq
+        IN
+	     <foreach collection="list" item="item" open="(" close=")" separator=",">
+	     	#{item}
+	     </foreach>
+   </delete>
+   <delete id="deleteArtDetail" parameterType="java.util.ArrayList">
+	     DELETE 
+	    	art_info_detail_tb
+       	WHERE
+        	art_code_seq
+        IN
+	     <foreach collection="list" item="item" open="(" close=")" separator=",">
+	     	#{item}
+	     </foreach>
+   </delete>
+   <delete id="deleteArtOption" parameterType="java.util.ArrayList">
+	     DELETE 
+	    	art_option_tb
+       	WHERE
+        	art_code_seq
+        IN
+	     <foreach collection="list" item="item" open="(" close=")" separator=",">
+	     	#{item}
+	     </foreach>
+   </delete>
+   
+   <!-- 작품 수정 목록 가져오기 -->
+   	<select id="getUpdateArt" parameterType="String" resultMap="artList">
+		SELECT * FROM art_tb
+		WHERE art_code_seq=#{artCodeSeq}
+	</select>
+	<select id="getUpdateArtInfo" parameterType="String" resultMap="artInfoList">
+		SELECT * FROM art_info_detail_tb
+		WHERE art_code_seq=#{artCodeSeq}
+	</select>
+	<select id="getUpdateArtOption" parameterType="String" resultMap="artOptionList">
+		SELECT * FROM art_option_tb
+		WHERE art_code_seq=#{artCodeSeq}
+		ORDER BY art_option_seq ASC
+	</select>		
+	
+	<!-- 작품수정 	-->
+	<update id="updateArts" parameterType="com.web.bomulsum.writer.art.repository.WriterArtVO">
+	     UPDATE 
+	    	art_tb
+        SET 
+        	art_photo=#{artPhoto},
+    		art_name=#{artName},
+    		art_price=#{artPrice},
+    		art_discount=#{artDiscount},
+    		art_amount=#{artAmount},
+    		art_description=#{artDescription},
+    		art_category=#{artCategory},
+		    art_keyword=#{artKeyword}       	
+       	WHERE
+        	art_code_seq=#{artCodeSeq}
+   </update>
+   <!-- 작품수정 상세정보 -->
+   	<update id="updateArtsInfo" parameterType="com.web.bomulsum.writer.art.repository.WriterArtInfoDetailVO">
+	     UPDATE 
+	    	art_info_detail_tb
+        SET 
+  			art_info_detail_category=#{artInfoDetailCategory},
+   			art_info_detail_weight=#{artInfoDetailWeight},
+    		art_info_detail_from=#{artInfoDetailFrom},
+    		art_info_detail_material=#{artInfoDetailMaterial},
+   			art_info_detail_expdate=#{artInfoDetailExpdate},
+    		art_info_detail_must=#{artInfoDetailMust},
+    		art_info_detail_component=#{artInfoDetailComponent},
+    		art_info_detail_way=#{artInfoDetailWay}
+       	WHERE
+        	art_code_seq=#{artCode}
+   </update>
+   
+   <!-- 작푸수정 옵션 -->
+	<update id="updateArtOption1" parameterType="hashMap" >
+		UPDATE
+			art_option_tb
+		SET 
+    		art_option_category=#{OptionCategory1},
+    		art_option_name=#{optionName1},
+    		art_option_price=#{optionPrice1}
+		WHERE 
+			art_option_seq=#{optionSeq1}
+	</update>
+	<update id="updateArtOption2" parameterType="hashMap" >
+		UPDATE
+			art_option_tb
+		SET 
+    		art_option_category=#{OptionCategory1},
+    		art_option_name=#{optionName2},
+    		art_option_price=#{optionPrice2}
+		WHERE 
+			art_option_seq=#{optionSeq2}
+	</update>
+	<update id="updateArtOption3" parameterType="hashMap" >
+		UPDATE
+			art_option_tb
+		SET 
+    		art_option_category=#{OptionCategory1},
+    		art_option_name=#{optionName3},
+    		art_option_price=#{optionPrice3}
+		WHERE 
+			art_option_seq=#{optionSeq3}
+	</update>
+	<update id="updateArtOption4" parameterType="hashMap" >
+		UPDATE
+			art_option_tb
+		SET 
+    		art_option_category=#{OptionCategory2},
+    		art_option_name=#{optionName4},
+    		art_option_price=#{optionPrice4}
+		WHERE 
+			art_option_seq=#{optionSeq4}
+	</update>
+	<update id="updateArtOption5" parameterType="hashMap" >
+		UPDATE
+			art_option_tb
+		SET 
+    		art_option_category=#{OptionCategory2},
+    		art_option_name=#{optionName5},
+    		art_option_price=#{optionPrice5}
+		WHERE 
+			art_option_seq=#{optionSeq5}
+	</update>
+	<update id="updateArtOption6" parameterType="hashMap" >
+		UPDATE
+			art_option_tb
+		SET 
+    		art_option_category=#{OptionCategory2},
+    		art_option_name=#{optionName6},
+    		art_option_price=#{optionPrice6}
+		WHERE 
+			art_option_seq=#{optionSeq6}
+	</update>
+	<update id="updateArtOption7" parameterType="hashMap" >
+		UPDATE
+			art_option_tb
+		SET 
+    		art_option_category=#{OptionCategory3},
+    		art_option_name=#{optionName7},
+    		art_option_price=#{optionPrice7}
+		WHERE 
+			art_option_seq=#{optionSeq7}
+	</update>
+	<update id="updateArtOption8" parameterType="hashMap" >
+		UPDATE
+			art_option_tb
+		SET 
+    		art_option_category=#{OptionCategory3},
+    		art_option_name=#{optionName8},
+    		art_option_price=#{optionPrice8}
+		WHERE 
+			art_option_seq=#{optionSeq8}
+	</update>
+	<update id="updateArtOption9" parameterType="hashMap" >
+		UPDATE
+			art_option_tb
+		SET 
+    		art_option_category=#{OptionCategory3},
+    		art_option_name=#{optionName9},
+    		art_option_price=#{optionPrice9}
+		WHERE 
+			art_option_seq=#{optionSeq9}
+	</update>
+	
+	<!-- 원희 수정 -->
+	<sql id="search">
+		<!-- 동적 SQL구문 -->
+		<if test="condition == ''">
+		AND art_name  LIKE ('%' || #{keyword} || '%') 
+		</if>
+		
+	</sql>
+<select id="getRecommendSelect" resultMap="artList">
+SELECT 
+    * 
+FROM(    
+    SELECT      
+        ROWNUM rnum, A.      
+    		*     
+   			FROM( 
+    			SELECT        
+    				*       
+    			FROM        
+    				art_tb             
+    			WHERE              
+    				writer_code_seq=#{writerCodeSeq} 
+    			AND 
+    				art_sale_state='Y' 
+    			AND 
+    				art_recommend_time is NULL
+    			AND art_recommend_temp = 'N'
+    			<include refid="search" />
+    				ORDER BY art_code_seq desc                       
+    			)           
+    		A         
+    )   
+WHERE     
+	rnum BETWEEN #{pageStart} AND #{pageNext}
+</select>
+<select id="getArtCount" resultType="int">
+	SELECT 
+		COUNT(*) 
+	FROM 
+		art_tb 
+	WHERE 
+		writer_code_seq=#{writerCodeSeq} AND art_sale_state='Y' AND art_recommend_temp = 'N'
+	AND 
+		art_recommend_state = 'N'
+</select>
+<sql id="temp">
+		<!-- 동적 SQL구문 -->
+		
+		
+	</sql>
+<update id="getTempUpdate" parameterType="String">
+	UPDATE 
+		art_tb
+	SET 
+		art_recommend_temp = 'Y'
+	WHERE
+		art_code_seq=#{artCodeSeq}
+</update>
+<update id="getTempUpdateN" parameterType="String">
+	UPDATE 
+		art_tb
+	SET 
+		art_recommend_temp = 'N'
+	WHERE
+		art_code_seq=#{artCodeSeq}
+</update>
+<select id="getRecommendSelectTemp" resultMap="artList">
+	SELECT
+		*
+	FROM
+		art_tb
+	WHERE
+		writer_code_seq=#{writerCodeSeq}
+	AND
+		art_sale_state='Y'
+	AND
+		art_recommend_time is NULL
+	AND 
+		art_recommend_temp = 'Y'
+</select> 			
+<select id="checkArtList" resultType="int">
+	SELECT 
+		COUNT(*) 
+	FROM 
+		art_tb 
+	WHERE 
+		writer_code_seq=#{writerCodeSeq} 
+		AND 
+			art_sale_state='Y' 
+		AND 
+			art_recommend_temp = 'Y' 
+		AND
+			art_recommend_time is NULL
+
+</select>
+<update id="recommendUp">
+	UPDATE
+		art_tb
+	SET
+		art_recommend_time = SYSDATE,
+		art_recommend_state = 'Y'
+	WHERE 
+		writer_code_seq=#{writerCodeSeq}
+	AND
+		art_sale_state='Y'
+	AND 
+		art_recommend_temp = 'Y'
+</update>
+<update id="getTempUpdateReN">
+	UPDATE
+		art_tb
+	SET
+      art_recommend_temp = 'N'
+	WHERE
+		writer_code_seq=#{writerCodeSeq}
+	AND
+		art_sale_state='Y'
+	AND 
+		art_recommend_state = 'Y'
+</update>
+
+<select id="getGemSum" parameterType="String" resultType="int">
+	SELECT
+		gem_price
+	FROM
+		gem_tb
+	WHERE
+		writer_code_seq=#{writerCode}
+</select>
+
+<insert id="insertGem" parameterType="hashMap">
+	INSERT INTO gem_tb
+	(
+		gem_seq,
+		writer_code_seq,
+		gem_usage,
+		gem_price,
+		gem_log
+	)
+	VALUES
+	(
+		'gem_seq' || TO_CHAR(gem_sq.nextval),
+		#{writerCode},
+		'Y',
+		#{price},
+		#{gemStr}
+	)
+</insert>
+
+</mapper>

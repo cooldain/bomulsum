@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="userReviewDAO">
+
+	<resultMap type="com.web.bomulsum.user.review.repository.UserReviewVO" id="reviewListMap">
+		<result column="member_name" property="memberName"/>
+		<result column="member_profile" property="memberProfile"/>
+		
+		<result column="buy_art_code_seq" property="buyArtCodeSeq"/>
+		<result column="BUY_ART_REVIEW_STATUS" property="bArtReviewStatus"/>
+		<result column="BUY_ART_REVIEW_UPDATE" property="bArtReviewUpdate"/>
+		
+		<result column="art_photo" property="artPhoto"/>
+		<result column="art_description" property="artDescription"/>
+		
+		<result column="review_code_seq" property="reviewCodeSeq" />
+		<result column="review_date" property="reviewDate" />
+		<result column="review_star" property="reviewStar" />
+		<result column="review_comment" property="reviewComment" />
+		<result column="writer_code_seq" property="writerCodeSeq" />
+		<result column="member_name" property="memberName" />
+		<result column="review_photo" property="reviewPhoto" />
+		<result column="review_comment_re" property="reviewCommentRe" />
+		<result column="review_comment_re_date" property="reviewCommentReDate" />
+		<result column="review_comment_re_status" property="reviewCommentReStatus" />
+		
+		<result column="grnum" property="gRnum"/>
+		<result column="datenum" property="dateNum"/>
+		
+		<result column="art_name" property="artName" />
+		<result column="art_code_seq" property="artCodeSeq"/>
+		<result column="writer_name" property="writerName"/>
+		<result column="writer_brand_name" property="writerBrandName" />
+		<result column="writer_url" property="writerUrl" />
+		<result column="writer_profile_img" property="writerProfileImg" />
+		
+		
+		<result column="BUY_OPTION_CODE_SEQ" property="bOrderCodeSeq"/>
+		<result column="ART_OPTION_NAME" property="bArtOptionName"/>
+		<result column="art_option_amount" property="artOptionAmount" />
+		<result column="order_date" property="orderDate"/>
+		
+	</resultMap>
+
+	<sql id="header">
+		SELECT Y.*
+		FROM (
+			SELECT ROWNUM AS RNUM, X.*
+			FROM (
+	</sql>
+	<sql id="footer">
+		) X ) Y
+		WHERE Y.RNUM BETWEEN #{startNum} AND #{endNum}
+		<!-- <if test="orderColumn != null and orderValue != null"> -->
+		<!-- </if> -->
+	</sql>
+
+
+	<!-- 페이징을 위한 구매후기 쓸 수 있는 구매 상품 목록 개수 구하기 -->
+	<select id="getReviewCount" parameterType="String" resultType="int">
+		SELECT
+			COUNT(*)
+		FROM
+			buy_art_tb a
+        LEFT OUTER JOIN
+            order_tb b ON a.order_code_seq = b.order_code_seq
+		WHERE
+			(
+			a.buy_art_review_update = 'N' AND b.member_code_seq = #{memberSeq}
+			)
+	</select>
+	
+	<!-- 구매후기 쓸 수 있는 구매 상품 목록 불러오기 -->
+	<!-- 구매후기테이블 수정하면 컬럼명 다 수정해주기 -->
+	<select id="reviewList" resultMap="reviewListMap">
+		<include refid="header" />
+			SELECT
+			    e.*, f.writer_name, f.writer_brand_name, f.writer_url, g.member_name, g.member_profile, h.art_name, h.art_photo, h.art_description,
+			    i.review_date, i.review_comment, i.review_star, i.review_photo
+			FROM
+			    (
+			    SELECT
+			        a.*, b.order_code_seq, b.art_code_seq, b.buy_art_review_status, b.buy_art_review_update,
+			        c.writer_code_seq, d.member_code_seq, d.order_date
+			    FROM
+			        (
+			        SELECT
+			            buy_art_code_seq,
+			            LISTAGG(art_option_name, '|-%-|') WITHIN GROUP (ORDER BY buy_option_code_seq) AS art_option_name,
+			            LISTAGG(art_option_amount, '|-%-|') WITHIN GROUP (ORDER BY buy_option_code_seq) AS art_option_amount
+			        FROM buy_option_tb
+			        GROUP BY buy_art_code_seq
+			        )a
+			    LEFT OUTER JOIN
+			        buy_art_tb b ON a.buy_art_code_seq = b.buy_art_code_seq
+			    LEFT OUTER JOIN
+			        buy_writer_tb c ON b.buy_writer_code_seq = c.buy_writer_code_seq
+			    LEFT OUTER JOIN
+			        order_tb d ON d.order_code_seq = b.order_code_seq
+			    WHERE b.buy_art_review_update = 'N'
+			    ) e
+			LEFT OUTER JOIN
+			    writer_tb f ON e.writer_code_seq = f.writer_code_seq
+			LEFT OUTER JOIN
+			    member_tb g ON g.member_code_seq = e.member_code_seq
+			LEFT OUTER JOIN
+			    art_tb h ON e.art_code_seq = h.art_code_seq
+			LEFT OUTER JOIN
+			    review_tb i ON e.buy_art_code_seq = i.buy_art_code_seq   
+			WHERE g.member_code_seq = #{memberSeq}
+			ORDER BY e.order_date DESC
+		<include refid="footer" />
+	</select>
+	
+	<!-- 페이징을 위한 작성된 구매 후기 목록 개수 구하기 -->
+	<select id="getReviewedCount" parameterType="String" resultType="int">
+		SELECT
+			COUNT(*)
+		FROM
+			review_tb
+		WHERE
+			(
+			member_code_seq = #{memberSeq}
+			)
+	</select>
+	<!-- 작성한 구매후기 목록 불러오기 -->
+	<!-- 작품 테이블에서 작품 이름, 작품 사진, 맴버 테이블에서 맴버 사진, 맴버 이름, 구매후기 테이블에서 별점, 날짜, 내용 불러와야됨 -->
+	<select id="reviewedList" resultMap="reviewListMap">
+		<include refid="header" />
+				SELECT
+					a.review_code_seq, a.review_date, a.review_star, a.review_comment,
+					a.review_comment_re, a.review_comment_re_date, a.review_comment_re_status,
+					b.art_photo, b.art_name, b.writer_code_seq,
+					c.member_name, c.member_profile,
+					d.writer_name, d.writer_brand_name, d.writer_profile_img
+				FROM
+					review_tb a
+				LEFT OUTER JOIN
+					art_tb b ON a.art_code_seq = b.art_code_seq
+				LEFT OUTER JOIN
+					member_tb c ON a.member_code_seq = c.member_code_seq
+				LEFT OUTER JOIN
+					writer_tb d ON b.writer_code_seq = d.writer_code_seq
+				WHERE
+					a.member_code_seq = #{memberSeq}
+				ORDER BY a.review_date DESC
+		<include refid="footer" />
+	</select>
+	
+	<!-- 홈 화면에 보여질 리뷰 리스트 -->
+	<select id="homeRealTimeReviewList" resultMap="reviewListMap">
+		SELECT ROWNUM as RNUM, x.*
+		FROM
+	        (
+	            SELECT
+	                a.review_code_seq, a.review_date, a.review_star, a.review_comment, a.art_code_seq,
+	                b.art_photo, b.art_name, c.member_name
+	            FROM
+	                review_tb a
+	            LEFT OUTER JOIN
+	                art_tb b ON a.art_code_seq = b.art_code_seq
+	            LEFT OUTER JOIN
+	                member_tb c ON a.member_code_seq = c.member_code_seq
+	            ORDER BY a.review_date DESC
+	        )x
+		WHERE ROWNUM BETWEEN 1 and 6
+	</select>
+	
+	
+	<!-- 구매후기 등록 -->
+	<insert id="reviewReg" parameterType="com.web.bomulsum.user.review.repository.UserReviewVO">
+		INSERT INTO review_tb
+		(
+			review_code_seq,
+			buy_art_code_seq,
+			member_code_seq,
+			art_code_seq,
+			review_comment,
+            review_star,
+            review_photo
+		)
+		VALUES
+		(
+			'review_code_seq' || TO_CHAR(review_sq.nextval),
+			#{buyArtCodeSeq},
+			#{memberCodeSeq},
+			#{artCodeSeq},
+			#{reviewComment},
+            #{reviewStar},
+            #{reviewPhoto}
+		)
+	</insert>
+	<!-- 구매후기 수정 -->
+	<update id="updateReview" parameterType="com.web.bomulsum.user.review.repository.UserReviewVO">
+		UPDATE
+			review_tb
+		SET
+			review_comment = #{reviewComment},
+			review_star = #{reviewStar}
+		WHERE
+			review_code_seq = #{reviewCodeSeq}
+	</update>
+	
+	
+	<!-- 구매작품 테이블 후기 상태 수정 -->
+	<update id="updateBuyArtTb" parameterType="com.web.bomulsum.user.review.repository.UserReviewVO">
+		UPDATE
+			buy_art_tb
+		SET
+			buy_art_review_status = 'Y'
+		WHERE
+			buy_art_code_seq = #{buyArtCodeSeq}
+	</update>
+	<update id="updateBuyArtTb2" parameterType="com.web.bomulsum.user.review.repository.UserReviewVO">
+		UPDATE
+			buy_art_tb
+		SET
+			buy_art_review_update = 'Y'
+		WHERE
+			buy_art_code_seq = #{buyArtCodeSeq}
+	</update>
+
+	<!-- 작가 한테 알람 쏴주기 -->
+	<insert id="insertAlarmTb" parameterType="com.web.bomulsum.user.review.repository.UserReviewVO">
+		INSERT INTO alarm_tb
+		(
+			alarm_seq,
+			sender_code,
+			recipient_code,
+			alarm_title,
+			alarm_content
+		)
+		VALUES
+		(
+			'alarm_seq' || TO_CHAR(alarm_sq.nextval),
+			#{memberCodeSeq},
+			#{writerCodeSeq},
+			'구매후기',
+			#{alarmContent}
+		)
+	</insert>
+
+	<!-- 실시간 구매 후기 -->
+	<select id="realtimeReview" resultMap="reviewListMap">
+	<include refid="header" />
+		SELECT
+		    g.art_code_seq, g.art_photo, g.art_name, g.writer_name, g.writer_brand_name, g.writer_url,
+		    LISTAGG(g.review_star, '|-%-|') WITHIN GROUP (order by g.datenum) AS review_star,
+		    LISTAGG(g.review_comment, '|-%-|') WITHIN GROUP (order by g.datenum) AS review_comment,
+		    LISTAGG(g.member_name, '|-%-|') WITHIN GROUP (order by g.datenum) AS member_name,
+		    LISTAGG(g.datenum, '|-%-|') WITHIN GROUP (order by g.datenum) AS datenum,
+		    LISTAGG(g.grnum, '|-%-|') WITHIN GROUP (order by g.datenum) AS grnum
+		FROM
+		    (
+		        SELECT
+		           f.* 
+		        FROM
+		        (
+		            SELECT
+		                a.art_code_seq, a.art_photo, a.art_name, b.writer_name, b.writer_brand_name, b.writer_url,
+		                c.review_star, c.review_comment, c.review_date,
+		                d.member_name, RANK() OVER(order by c.review_date DESC) AS datenum,
+		                ROW_NUMBER() OVER(PARTITION BY a.art_code_seq ORDER BY a.art_code_seq, c.review_date DESC) AS grnum
+		            FROM
+		                art_tb a
+		            LEFT OUTER JOIN
+		                writer_tb b ON a.writer_code_seq = b.writer_code_seq
+		            LEFT OUTER JOIN
+		                review_tb c ON a.art_code_seq = c.art_code_seq
+		            LEFT OUTER JOIN
+		                member_tb d ON c.member_code_seq = d.member_code_seq
+		            LEFT OUTER JOIN
+		                buy_art_tb e ON c.buy_art_code_seq = e.buy_art_code_seq
+		            WHERE e.buy_art_review_status = 'Y'
+		        ) f
+		        WHERE f.grnum between 1 and 3
+		    ) g
+		GROUP BY g.art_code_seq, g.art_photo, g.art_name, g.writer_name, g.writer_brand_name, g.writer_url
+		ORDER BY datenum
+	<include refid="footer" />
+	</select>
+	
+	<!-- 페이징을 위한 작품별 구매 후기 목록 개수 구하기 -->
+	<select id="getRealTimeReviewCount" resultType="int">
+		SELECT
+		    COUNT(*)
+		FROM
+		    (
+		    SELECT
+		        art_code_seq
+		    FROM
+		        review_tb
+		    GROUP BY art_code_seq
+		    )
+	</select>
+	
+	<!-- 작품별 구매후기 불러오기 -->
+ 	<select id="artReviewList" parameterType="String" resultMap="reviewListMap">
+ 		SELECT
+ 			a.review_code_seq, a.buy_art_code_seq, a.member_code_seq, a.art_code_seq,
+ 			a.review_date, a.review_comment, a.review_star, a.review_photo,
+ 			b.member_name, b.member_profile
+ 		FROM
+ 			review_tb a
+ 		LEFT OUTER JOIN
+ 			member_tb b ON a.member_code_seq = b.member_code_seq
+ 		WHERE a.art_code_seq = #{artCodeSeq}
+ 		ORDER BY a.review_date DESC
+	</select>
+
+	<!-- 구매후기 등록하기 -->
+	<!-- <insert id="" parameterType="">
+	</insert> -->
+
+</mapper>

@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="NodeDbDAO">
+
+	<resultMap type="com.web.bomulsum.user.message.repository.NodeDbVO" id="nodeDbVo">
+		<result property="messageSeq" column="message_seq"/>
+		<result property="memberCodeSeq" column="member_code_seq"/>
+		<result property="writerCodeSeq" column="writer_code_seq"/>
+		<result property="messageContent" column="message_content"/>
+		<result property="messageTime" column="message_time"/>
+		<result property="messageRead" column="message_read"/>
+	</resultMap>
+	
+	<resultMap type="com.web.bomulsum.user.message.repository.UserChatRoomVO" id="chatVo">
+		<result property="writerCode" column="writer_code_seq"/>
+		<result property="writerName" column="writer_name"/>
+		<result property="writerImg" column="writer_profile_img"/>
+		<result property="writerBrandName" column="writer_brand_name"/>
+		<result property="chatroomCode" column="chatroom_sq" />
+	</resultMap>
+
+	
+	<select id="getMessage" resultMap="nodeDbVo">
+		SELECT * FROM message_tb
+	</select>
+	
+	<select id="getUserCodes" resultType="String">
+		SELECT member_code_seq
+		FROM member_tb
+	</select>
+	
+	<select id="getChatroomCode" parameterType="hashMap" resultType="String">
+		SELECT
+			chatroom_sq
+		FROM
+			chatroom_tb
+		WHERE
+		(
+			(
+				member_code_seq=#{sender}
+				AND
+				writer_code_seq=#{receiver}
+			)
+			OR
+			(
+				member_code_seq=#{receiver}
+				AND
+				writer_code_seq=#{sender}
+			)
+		)
+	</select>
+	
+	<select id="getChatroom" parameterType="String" resultMap="chatVo">
+		SELECT 
+			w.writer_code_seq, 
+			w.writer_name, 
+			w.writer_brand_name,
+			w.writer_profile_img,
+			c.chatroom_sq
+		FROM 
+			writer_tb w
+		INNER JOIN 
+			(chatroom_tb c)
+		ON 
+			w.writer_code_seq = c.writer_code_seq
+		WHERE 
+			(
+				c.member_code_seq = #{userCode}
+				AND
+				c.chatroom_in_member = 'Y'
+			)
+		ORDER BY 
+			c.chatroom_date
+	</select>
+	
+	<select id="getNonReadMsg" parameterType="hashMap" resultType="int">
+		SELECT COUNT(*) FROM
+			message_tb
+		WHERE
+			chatroom_sq=#{chatroomCode}
+			AND
+			message_read='N'
+			AND
+			message_receiver_code=#{receiver}
+	</select>
+	
+	<select id="getNonReadMsgContent" parameterType="hashMap" resultType="String">
+		SELECT
+			message_content
+		FROM
+		(
+			SELECT 
+				message_content
+			FROM 
+				message_tb
+			WHERE
+			(
+				message_receiver_code=#{memberCode}
+				AND
+				chatroom_sq=#{chatRoomCode}
+			)
+			OR
+			(
+				message_sender_code=#{memberCode}
+				AND
+				chatroom_sq=#{chatRoomCode}
+			)
+			ORDER BY
+				message_time desc
+		)
+		WHERE rownum=1
+	</select>
+	
+	<select id="testGetWriter" resultMap="chatVo">
+		SELECT
+			writer_code_seq, writer_name, writer_profile_img, writer_brand_name
+		FROM
+			writer_tb
+	</select>
+	
+	<select id="insertChatRoomBefore" parameterType="com.web.bomulsum.user.message.repository.UserInsertChatVo"
+		resultType="String">
+		SELECT
+			chatroom_in_member
+		FROM
+			chatroom_tb
+		WHERE
+			(
+				member_code_seq=#{memberCode}
+				AND
+				writer_code_seq=#{writerCode}
+			)
+	</select>
+	
+	<update id="updateChatRoom" parameterType="com.web.bomulsum.user.message.repository.UserInsertChatVo">
+		UPDATE
+			chatroom_tb
+		SET
+			chatroom_in_member='Y'
+		WHERE
+			(
+				member_code_seq=#{memberCode}
+				AND
+				writer_code_seq=#{writerCode}
+			)
+	</update>
+	
+	<insert id="insertChatRoom" parameterType="com.web.bomulsum.user.message.repository.UserInsertChatVo">
+		INSERT INTO
+		chatroom_tb
+		(
+			chatroom_sq,
+			member_code_seq,
+			writer_code_seq,
+			chatroom_in_member
+		)
+		VALUES
+		(
+			'chatroom_sq' || TO_CHAR(chatroom_sq.nextval), 
+			#{memberCode}, 
+			#{writerCode},
+			'Y'
+		)
+	</insert>
+	
+	<update id="delChatRoom" parameterType="java.util.List">
+		
+		UPDATE
+			chatroom_tb
+		SET
+			chatroom_in_member='N'
+		<where>
+			<foreach collection="list" item="item" open="" close="" separator="OR">
+				(
+					member_code_seq=#{item.memberCode} 
+				AND 
+					writer_code_seq=#{item.writerCode}
+				)
+			</foreach>
+		</where>
+	</update>
+	
+	<select id="selectWish" parameterType="hashMap" resultType="int">
+		SELECT
+			COUNT(*)
+		FROM
+			wishlist_tb
+		WHERE
+			member_code_seq=#{memberCode}
+			AND
+			wishlist_option=#{option}
+			AND
+			wishlist_option_code = #{writerCode}
+	</select>
+	
+	<insert id="insertWish" parameterType="hashMap">
+		INSERT INTO
+		wishlist_tb
+		(
+			wishlist_seq,
+			member_code_seq,
+			wishlist_option,
+			wishlist_option_code
+		)
+		VALUES
+		(
+			'wishlist_seq' || TO_CHAR(wishlist_sq.nextval),
+			#{memberCode},
+			#{option},
+			#{writerCode}
+		)
+	</insert>
+	
+	<delete id="deleteWish" parameterType="hashMap">
+		DELETE FROM
+			wishlist_tb
+		WHERE
+			member_code_seq=#{memberCode}
+			AND
+			wishlist_option=#{option}
+			AND
+			wishlist_option_code = #{writerCode}
+	</delete>
+	
+</mapper>

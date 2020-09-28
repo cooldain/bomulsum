@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.web.bomulsum.writer.board.repository.writerBoardDAO">
+
+	
+	<resultMap id="BoardMap" type="com.web.bomulsum.writer.board.repository.writerBoardVO">
+		
+		<result property="admin_notice_category" column="admin_notice_category"/>
+		<result property="admin_notice_seq" column="admin_notice_seq"/>
+		<result property="admin_notice_title" column="admin_notice_title"/>
+		<result property="admin_notice_content" column="admin_notice_content"/>
+		<result property="admin_notice_date" column="admin_notice_date"/>
+		<result property="admin_notice_coupon" column="admin_notice_coupon"/>
+	</resultMap>
+
+	
+	
+	<select id="getPolicyGuideBoard" resultType="writerBoardVO" parameterType="String">
+		SELECT admin_notice_title, admin_notice_date , admin_notice_seq
+		FROM admin_notice_tb 
+		WHERE admin_notice_category in ('작가용-정책등록가이드')
+	</select>
+	
+	<select id="getAnnouncementBoard" parameterType="String" resultType="writerBoardVO">
+		SELECT
+			admin_notice_seq,
+			admin_notice_title,
+			admin_notice_date
+		FROM 
+			admin_notice_tb 
+		WHERE 
+			admin_notice_category IN('이벤트','작가용-공지사항')
+		ORDER BY 
+			admin_notice_title DESC
+	</select>
+	<select id="getAnnouncementArticle" parameterType="String" resultType="writerBoardVO">
+		SELECT
+		 	admin_notice_category,admin_notice_content,admin_notice_title, admin_notice_coupon,admin_notice_date 
+		FROM 
+		 	admin_notice_tb 
+		WHERE 
+			admin_notice_seq=#{admin_notice_seq}
+	</select>
+
+   <select id="getPolicyGuideArticle" parameterType="string" resultType="writerBoardVO">
+   		SELECT
+          admin_notice_category,admin_notice_content,admin_notice_title, admin_notice_coupon,admin_notice_date 
+      FROM 
+          admin_notice_tb 
+      WHERE 
+         admin_notice_seq=#{admin_notice_seq}
+   </select>
+	  
+	<select id="getQuestionBoard" parameterType="string" resultType="writerBoardVO">
+		SELECT admin_notice_seq, admin_notice_category, admin_notice_title, 
+		admin_notice_content, admin_notice_coupon, admin_notice_date  
+		FROM admin_notice_tb
+		WHERE admin_notice_category in('작가용-자주묻는질문')
+	</select> 
+	
+	<select id="getQuestionArticle" parameterType="string" resultType="writerBoardVO">
+	SELECT
+          admin_notice_category,admin_notice_content,admin_notice_title, admin_notice_coupon,admin_notice_date 
+      FROM 
+          admin_notice_tb 
+      WHERE 
+         admin_notice_seq=#{admin_notice_seq}
+	</select>
+	
+
+</mapper>

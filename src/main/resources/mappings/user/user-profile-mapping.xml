@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="userProfileDAO">
+
+<!-- 		<resultMap type="com.web.bomulsum.user.profile.repository.UserProfileVO" id="uProfileMap">
+		<result property="couponName" column="member_code_seq" />
+		<result property="couponName" column="member_email" />
+		<result property="couponName" column="member_name" />
+		<result property="couponName" column="member_phone" />
+		<result property="couponName" column="member_rec_code" />
+		<result property="couponName" column="member_term_agree" />
+		<result property="couponName" column="member_private_agree" />
+		<result property="couponName" column="member_sms_agree" />
+		<result property="couponName" column="member_email_agree" />
+		<result property="couponName" column="member_birth" />
+		<result property="couponName" column="member_gender" />
+		<result property="couponName" column="member_grade" />
+		<result property="couponName" column="member_profile" />
+		</resultMap>  -->
+
+<!-- 회원등급 -->
+
+	<!-- 회원 구매금액 산정 -->
+	<select id="getSumPay" parameterType="String" resultType="int" >
+<!-- 		SELECT
+		NVL(SUM(order_pay_price),0)
+		FROM order_tb
+		WHERE member_code_seq = #{memberCode}
+		WHERE member_code_seq = #{writerCodeSeq} -->
+		SELECT
+			NVL(SUM(order_pay_price),0)
+		FROM 
+			order_tb o, buy_writer_tb w
+		WHERE 
+			o.order_code_seq = w.order_code_seq
+		AND 
+			o.member_code_seq = #{memberCode}
+		AND 
+			w.buy_writer_order_status NOT IN ('환불 완료')
+	</select>
+	
+	<!-- 3개월 이내 구매금액 산정 -->
+	<select id="getSumPayPeriod" parameterType="String" resultType="int" >
+		SELECT
+			NVL(SUM(order_pay_price),0)
+		FROM 
+			order_tb o, buy_writer_tb w
+		WHERE 
+			o.order_code_seq = w.order_code_seq
+		AND 
+			TRUNC(o.order_date) > TRUNC(SYSDATE - 90)
+		AND
+			member_code_seq = #{memberCode}
+		
+<!-- 		SELECT
+		NVL(SUM(order_pay_price),0)
+		FROM order_tb
+		WHERE order_date > SYSDATE-90 
+		AND
+		member_code_seq = #{memberCode} -->
+	</select>
+	
+	
+	
+	
+<!-- 회원정보관리 -->
+
+	<!-- 회원 정보 가져오기 -->
+	<select id="getUserInfo" parameterType="String" resultType="UserProfileVO" >
+		SELECT 
+		member_code_seq, member_name, member_email, member_phone, member_gender, member_birth, member_sms_agree, member_email_agree
+		FROM member_tb
+		WHERE member_code_seq = #{memberCode}
+	</select>
+	
+	<!-- 회원 정보 수정 -->
+	<update id="updateUserInfo" parameterType="UserProfileVO">
+		UPDATE member_tb
+		
+		SET
+		member_name = #{member_name},
+		member_gender = #{member_gender},
+		member_birth = #{member_birth, jdbcType=DATE},
+		member_sms_agree = #{member_sms_agree},
+		member_email_agree = #{member_email_agree}
+		
+		WHERE member_code_seq = #{member_code_seq}
+
+	</update>
+	
+	<!-- 전화번호 수정 -->
+	<update id="updateUserPhone" parameterType="UserProfileVO">
+		UPDATE member_tb
+		
+		SET
+		member_phone = #{member_phone}
+		
+		WHERE member_code_seq = #{member_code_seq}
+	</update>
+	
+	<!-- 회원 탈퇴 -->
+	<delete id="deleteUser" parameterType="UserProfileVO">
+		DELETE
+		FROM member_tb
+		WHERE member_code_seq = #{member_code_seq}
+	</delete>
+	
+	
+<!-- 회원 배송지 관리 -->
+	<!--회원 배송지 등록 -->
+	<insert id="insertUserAddress" parameterType="UserProfileAddressVO">
+		insert into member_address_tb 
+		(member_address_seq, member_code_seq, member_address_zipcode, member_address_first, 
+		member_address_second, member_address_name, member_address_phone)
+		
+		VALUES 
+		('member_address_seq' || TO_CHAR(member_address_sq.nextval),
+		#{member_code_seq}, #{member_address_zipcode}, #{member_address_first}, 
+		#{member_address_second}, #{member_address_name}, #{member_address_phone})
+
+	</insert> 
+	
+	<!-- 회원 배송지 select -->
+	<select id="selectUserAddress" resultType="UserProfileAddressVO" parameterType="UserProfileAddressVO">
+		SELECT * FROM member_address_tb
+	    WHERE member_code_seq = #{member_code_seq}
+	    ORDER BY member_address_seq ASC
+	</select>
+	
+	
+	<!-- 회원 배송지 update -->
+	<update id="updateUserAddress" parameterType="UserProfileAddressVO">
+		UPDATE member_address_tb
+		
+		SET
+		member_address_zipcode = #{member_address_zipcode}, 
+		member_address_first = #{member_address_first}, 
+		member_address_second = #{member_address_second}, 
+		member_address_name = #{member_address_name}, 
+		member_address_phone = #{member_address_phone}
+		
+		WHERE member_address_seq = #{member_address_seq}
+	</update>
+	
+	<!-- 회원내정보 사이드 _ 프로필 이미지 변경 -->
+	<update id="updateUserProfile" parameterType="UserProfileVO">
+		UPDATE member_tb
+		SET 
+		member_profile = #{member_profile} 
+		WHERE 
+		member_code_seq = #{member_code_seq} <!-- 작가코드 받아오기 -->
+	</update>
+</mapper>
