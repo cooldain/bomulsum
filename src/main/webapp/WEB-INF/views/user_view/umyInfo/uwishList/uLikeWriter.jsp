@@ -409,6 +409,7 @@ body a:link, a:visited, a:hover, a:active {
   						</div>
 
 				</div>
+				</div>
 				</li>
 				</c:forEach>
  			

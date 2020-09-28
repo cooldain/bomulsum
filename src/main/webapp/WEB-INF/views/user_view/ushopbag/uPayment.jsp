@@ -1868,9 +1868,9 @@ ul.tabs li.current {
 		<div class="dain_privacyPolicy">
 			<label>
 			<input type="checkbox" id="dain_privacy_check" name="privacy_info" autocomplete="off" required="required" class="bp">
-	        <span class="cursor" style="font-size:14px;"><em class="dainem">*</em>개인정보 제3자 제공고지 </label>
+	        <span class="cursor" style="font-size:14px;"><em class="dainem">*</em>개인정보 제3자 제공고지 </span></label>
 	        <span id="dain_privacy" class="cursor" style="font-size:12px; color: #666; margin-left: 10px;">더보기
-	        <i id="dain_privacy_arrow" class="fa fa-angle-down" aria-hidden="true"></i></span></span>
+	        <i id="dain_privacy_arrow" class="fa fa-angle-down" aria-hidden="true"></i></span>
 	        <div class="dain_privacyPolicy_txt" id="dainPrivacyDetail" style="display:none;">
 		        ‣ 제공받는 자 : 
 		        <c:forEach items='${shopbagInfo}' var="i">
